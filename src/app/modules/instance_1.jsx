@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Row, Col, Card, Collapse } from 'antd';
 import { MailOutlined, QrcodeOutlined, FileTextOutlined } from '@ant-design/icons';
-import AddUserTable from '../util/AddUserTable';
+import AddUserTable from '../util/AddUserTable.jsx';
 
 // const mockData = [
 //     {
@@ -57,16 +57,36 @@ export default function Instance({ intl }) {
     const [users, setUsers] = useState([]);
     useEffect(() => {
         // setUsers((currentUsers) => [...currentUsers, ...mockData]);
+        const userCollect = [];
         getWgConfig().then((response) => {
-            let data = [];
+            let data;
             if (response.data.length > 0) {
                 data = response.data;
             }
-            setUsers((previous) => data);
+            userCollect.push(...data);
+            // setUsers((previous) => data);
+            getWgRealTime().then((response) => {
+                let data;
+                if (response.data.length > 0) {
+                    data = response.data;
+                }
+                for (const [key, value] of Object.entries(data)) {
+                    for (const [index, collect] of userCollect) {
+                        if (key === collect.publicKey && value) {
+                            if ('last_seen' in value) {
+                                collect['last_seen'] = value['last_seen'];
+                            }
+                            if ('traffic_counter' in value) {
+                                collect['traffic_counter'] = value['traffic_counter'];
+                            }
+                        }
+                    }
+                }
+                // console.log(userCollect);
+                setUsers((previous) => userCollect);
+            });
         });
-        // getWgRealTime().then((response) => {
-        //     console.log(response);
-        // });
+
         // getInstanceUptime().then((response) => {
         //     console.log(response);
         // });

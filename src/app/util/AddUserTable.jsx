@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Table, Button, Modal, Form, Input } from 'antd';
 
-const AddUserTable = () => {
+export default function AddUserTable() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
 
@@ -27,7 +27,7 @@ const AddUserTable = () => {
             <Button type="primary" onClick={showModal}>
                 Add User
             </Button>
-            <Modal title="Add User" visible={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
+            <Modal title="Add User" open={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
                 <Form form={form} onFinish={handleAddUser}>
                     <Form.Item
                         label="Description"
@@ -73,6 +73,4 @@ const AddUserTable = () => {
             </Modal>
         </div>
     );
-};
-
-export default AddUserTable;
+}
