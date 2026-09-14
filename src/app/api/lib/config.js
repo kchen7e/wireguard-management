@@ -1,3 +1,5 @@
+export const WG_LISTEN_PORT = 51820;
+
 export function buildClientConfig(client, instance) {
     const keepalive = 25;
     const endpoint = `${instance.server_endpoint}:${instance.server_listen_port}`;
@@ -25,7 +27,7 @@ export function buildServerConfig(instance, clients) {
     const interfaceLines = [
         '[Interface]',
         `Address = ${instance.server_address}`,
-        `ListenPort = ${instance.server_listen_port}`,
+        `ListenPort = ${WG_LISTEN_PORT}`,
         `PrivateKey = ${instance.server_private_key}`,
     ];
 

@@ -51,8 +51,18 @@ async function ensureSchemaUnsafe() {
         );
     `);
 
-    await activePool.query(`CREATE INDEX IF NOT EXISTS idx_clients_instance_id ON clients(instance_id);`);
-    await activePool.query(`CREATE INDEX IF NOT EXISTS idx_clients_public_key ON clients(public_key);`);
+    const indexStatements = [
+        `CREATE INDEX IF NOT EXISTS idx_clients_instance_id ON clients(instance_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_clients_public_key ON clients(public_key)`,
+    ];
+
+    for (const statement of indexStatements) {
+        try {
+            await activePool.query(statement);
+        } catch (error) {
+            console.warn(`Skipping index creation (${error.message})`);
+        }
+    }
 }
 
 export async function ensureSchema() {

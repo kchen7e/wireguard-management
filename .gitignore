@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# runtime instance data (generated from DB)
+/data/
+
 # production
 /build
 

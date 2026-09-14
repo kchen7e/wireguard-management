@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import QRCode from 'qrcode';
-import { getInstanceById, getClientById } from '../../../../lib/instance.js';
-import { buildClientConfig } from '../../../../lib/config.js';
+import { getInstanceById, getClientById } from '../../../lib/instance.js';
+import { buildClientConfig } from '../../../lib/config.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;

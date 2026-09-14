@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getInstanceById, reloadWireGuardContainer } from '../../../lib/instance.js';
+import { getInstanceById, getClientsByInstanceId, reloadWireGuardContainer } from '../../../lib/instance.js';
 
 export async function POST(request, { params }) {
     const { id } = await params;
@@ -9,8 +9,9 @@ export async function POST(request, { params }) {
             return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
         }
 
-        await reloadWireGuardContainer();
-        return NextResponse.json({ success: true });
+        const clients = await getClientsByInstanceId(id);
+        const result = await reloadWireGuardContainer(instance, clients);
+        return NextResponse.json(result);
     } catch (error) {
         console.error('Error reloading WireGuard config:', error);
         return NextResponse.json({ error: 'Failed to reload WireGuard config' }, { status: 500 });

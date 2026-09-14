@@ -1,5 +1,9 @@
-import { randomBytes } from 'crypto';
+import { randomBytes, generateKeyPairSync } from 'crypto';
 import { query } from '../db.js';
+import { buildServerConfig } from './config.js';
+import { atomicWriteFile } from './fs.js';
+import { runContainer } from './container.js';
+import { instanceConfigFile } from './paths.js';
 
 export async function getInstanceById(id) {
     const result = await query(
@@ -25,22 +29,97 @@ export async function getClientById(id) {
     return result.rows[0];
 }
 
+export async function getClientsByInstanceId(instanceId) {
+    const result = await query(
+        `SELECT id, description, client_ip::TEXT AS client_ip, allowed_ips, public_key, private_key, psk
+         FROM clients WHERE instance_id = $1 ORDER BY id`,
+        [instanceId]
+    );
+    return result.rows;
+}
+
 export async function getWgRealTimeData() {
-    // Dummy: no SSH available yet.
     return {};
 }
 
 export async function generatePSK() {
-    // Dummy PSK until SSH is wired up. Real PSKs are 32 random bytes, base64-encoded.
     return randomBytes(32).toString('base64');
 }
 
+function toWireGuardBase64(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    return base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+}
+
+export function generateKeyPair() {
+    const { publicKey, privateKey } = generateKeyPairSync('x25519');
+    return {
+        publicKey: toWireGuardBase64(publicKey.export({ format: 'jwk' }).x),
+        privateKey: toWireGuardBase64(privateKey.export({ format: 'jwk' }).d),
+    };
+}
+
 export async function getContainerUptime() {
-    // Dummy: no SSH available yet.
     return new Date().toISOString();
 }
 
-export async function reloadWireGuardContainer() {
-    // Dummy: no SSH available yet.
-    return { success: true };
+export async function writeServerConfig(instance, clients) {
+    const content = buildServerConfig(instance, clients);
+    const filePath = instanceConfigFile(instance);
+    await atomicWriteFile(filePath, content);
+    return filePath;
+}
+
+export function parseWgDump(dump) {
+    const peers = new Set();
+    for (const line of dump.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        const [publicKey] = trimmed.split('\t');
+        if (publicKey) peers.add(publicKey);
+    }
+    return peers;
+}
+
+export function verifyPeers(dump, clients) {
+    const actual = parseWgDump(dump);
+    const expected = new Set(clients.map((client) => client.public_key));
+    const missing = [...expected].filter((key) => !actual.has(key));
+    const extra = [...actual].filter((key) => !expected.has(key));
+    return {
+        status: missing.length === 0 && extra.length === 0 ? 'applied' : 'mismatch',
+        missing,
+        extra,
+    };
+}
+
+export async function reloadWireGuardContainer(instance, clients) {
+    const filePath = await writeServerConfig(instance, clients);
+    await runContainer([
+        'exec',
+        instance.container_name,
+        'wg',
+        'syncconf',
+        instance.interface_name,
+        '/etc/wireguard/wg0.conf',
+    ]);
+    const { stdout } = await runContainer([
+        'exec',
+        instance.container_name,
+        'wg',
+        'show',
+        instance.interface_name,
+        'dump',
+    ]);
+    const { status, missing, extra } = verifyPeers(stdout, clients);
+    return { success: status === 'applied', status, verified: true, missing, extra, configPath: filePath };
+}
+
+export async function reloadInstanceById(id) {
+    const instance = await getInstanceById(id);
+    if (!instance) {
+        throw new Error('Instance not found');
+    }
+    const clients = await getClientsByInstanceId(id);
+    return reloadWireGuardContainer(instance, clients);
 }

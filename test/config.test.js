@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildClientConfig, buildServerConfig } from '../src/app/api/lib/config.js';
+import { buildClientConfig, buildServerConfig, WG_LISTEN_PORT } from '../src/app/api/lib/config.js';
 
 const instance = {
     server_private_key: 'server-private',
@@ -80,5 +80,24 @@ describe('Config builders', () => {
         const config = buildServerConfig(noDnsInstance, []);
 
         expect(config).not.toContain('DNS');
+    });
+
+    it('keeps a fixed internal listen port while using the published port on the client endpoint', () => {
+        const publishedInstance = { ...instance, server_listen_port: 60000 };
+        const client = {
+            description: 'Carol',
+            client_ip: '10.13.13.4/32',
+            allowed_ips: '0.0.0.0/0',
+            private_key: 'client-private',
+            public_key: 'client-public',
+            psk: null,
+        };
+
+        const serverConfig = buildServerConfig(publishedInstance, []);
+        expect(serverConfig).toContain(`ListenPort = ${WG_LISTEN_PORT}`);
+        expect(serverConfig).not.toContain('ListenPort = 60000');
+
+        const clientConfig = buildClientConfig(client, publishedInstance);
+        expect(clientConfig).toContain('Endpoint = vpn.example.com:60000');
     });
 });

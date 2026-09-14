@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PieChartOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, theme, Switch } from 'antd';
 
 import Instance from './modules/Instance.jsx';
+import CreateInstance from './util/CreateInstance.jsx';
 import { CN_ZH, EN_GB } from './intl';
 
 const { Content, Footer, Sider } = Layout;
@@ -13,7 +14,7 @@ export default function App() {
     const [intl, setIntl] = useState(EN_GB);
     const [instances, setInstances] = useState([]);
 
-    useEffect(() => {
+    const fetchInstances = useCallback(() => {
         fetch('/api/instances')
             .then((res) => res.json())
             .then((payload) => {
@@ -23,6 +24,10 @@ export default function App() {
             })
             .catch((error) => console.error('Error fetching instances:', error));
     }, []);
+
+    useEffect(() => {
+        fetchInstances();
+    }, [fetchInstances]);
 
     function getItem(label, key, icon, children) {
         return {
@@ -34,7 +39,7 @@ export default function App() {
     }
 
     const instanceMenuItems = instances.map((instance) =>
-        getItem(`${intl['instance']} ${instance.name}`, `instance-${instance.id}`)
+        getItem(`${intl['instance']} ${instance.container_name}`, `instance-${instance.id}`)
     );
 
     const items = [
@@ -46,7 +51,12 @@ export default function App() {
 
     const renderContent = () => {
         if (selectedKey === '1') {
-            return <div>Home Content</div>;
+            return (
+                <div>
+                    <p>Home Content</p>
+                    <CreateInstance intl={intl} onCreated={fetchInstances} />
+                </div>
+            );
         }
         if (selectedInstance) {
             return <Instance intl={intl} instance={selectedInstance} />;

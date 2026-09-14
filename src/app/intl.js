@@ -26,6 +26,15 @@ export const CN_ZH = {
     show_qr: '显示二维码',
     reload: '重载',
     psk: '预共享密钥',
+    create_new_instance: '创建新实例',
+    instance_name: '实例名称',
+    server_ip: '服务器 IP',
+    server_endpoint: '服务器端点',
+    server_listen_port: '主机端口',
+    dns: 'DNS',
+    delete: '删除',
+    confirm_delete: '删除此客户端？',
+    cancel: '取消',
 };
 
 export const EN_GB = {
@@ -56,4 +65,13 @@ export const EN_GB = {
     show_qr: 'Show QR Code',
     reload: 'Reload',
     psk: 'Pre-shared Key',
+    create_new_instance: 'Create New Instance',
+    instance_name: 'Instance Name',
+    server_ip: 'Server IP',
+    server_endpoint: 'Server Endpoint',
+    server_listen_port: 'Host Port',
+    dns: 'DNS',
+    delete: 'Delete',
+    confirm_delete: 'Delete this client?',
+    cancel: 'Cancel',
 };

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '../../../../db.js';
-import { generatePSK } from '../../../lib/instance.js';
+import { query } from '../../../db.js';
+import { generateKeyPair, generatePSK, reloadInstanceById } from '../../../lib/instance.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;
@@ -30,16 +30,14 @@ export async function POST(request, { params }) {
         }
 
         const body = await request.json();
-        const { description, clientIp, allowedIPs, publicKey, privateKey, generatePsk = true } = body;
+        const { description, clientIp, allowedIPs = '0.0.0.0/0' } = body;
 
-        if (!description || !clientIp || !allowedIPs || !publicKey || !privateKey) {
+        if (!description || !clientIp) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        let psk = null;
-        if (generatePsk) {
-            psk = await generatePSK();
-        }
+        const { publicKey, privateKey } = generateKeyPair();
+        const psk = await generatePSK();
 
         const result = await query(
             `INSERT INTO clients (instance_id, description, client_ip, allowed_ips, public_key, private_key, psk)
@@ -48,7 +46,14 @@ export async function POST(request, { params }) {
             [id, description, clientIp, allowedIPs, publicKey, privateKey, psk]
         );
 
-        return NextResponse.json({ data: result.rows[0] }, { status: 201 });
+        let reloaded = true;
+        try {
+            await reloadInstanceById(id);
+        } catch (error) {
+            reloaded = false;
+        }
+
+        return NextResponse.json({ data: result.rows[0], reloaded }, { status: 201 });
     } catch (error) {
         console.error('Error creating client:', error);
         return NextResponse.json({ error: 'Failed to create client' }, { status: 500 });
