@@ -10,6 +10,7 @@ export default function ClientCard({ client, intl, onDeleted }) {
     const [deleting, setDeleting] = useState(false);
     const startX = useRef(null);
     const startOffset = useRef(0);
+    const dragging = useRef(false);
 
     const downloadConfig = () => {
         window.open(`/api/clients/${client.id}/config`, '_blank');
@@ -18,18 +19,27 @@ export default function ClientCard({ client, intl, onDeleted }) {
     const onPointerDown = (e) => {
         startX.current = e.clientX;
         startOffset.current = offset;
-        e.currentTarget.setPointerCapture(e.pointerId);
+        dragging.current = false;
     };
 
     const onPointerMove = (e) => {
         if (startX.current === null) return;
         const dx = e.clientX - startX.current;
-        setOffset(Math.min(0, Math.max(-ACTION_WIDTH, startOffset.current + dx)));
+        if (!dragging.current && Math.abs(dx) > 5) {
+            dragging.current = true;
+            e.currentTarget.setPointerCapture(e.pointerId);
+        }
+        if (dragging.current) {
+            setOffset(Math.min(0, Math.max(-ACTION_WIDTH, startOffset.current + dx)));
+        }
     };
 
     const onPointerUp = () => {
         startX.current = null;
-        setOffset((prev) => (prev < -ACTION_WIDTH / 2 ? -ACTION_WIDTH : 0));
+        if (dragging.current) {
+            setOffset((prev) => (prev < -ACTION_WIDTH / 2 ? -ACTION_WIDTH : 0));
+        }
+        dragging.current = false;
     };
 
     const handleDelete = async () => {

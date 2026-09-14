@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, message } from 'antd';
+import { isValidPrivateCidr } from './ip.js';
 
 export default function CreateInstance({ intl, onCreated }) {
     const [open, setOpen] = useState(false);
@@ -55,7 +56,20 @@ export default function CreateInstance({ intl, onCreated }) {
                     <Form.Item
                         label={intl['server_ip']}
                         name="serverAddress"
-                        rules={[{ required: true, message: 'Please input the server IP!' }]}
+                        rules={[
+                            { required: true, message: 'Please input the server IP!' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    if (!isValidPrivateCidr(value)) {
+                                        return Promise.reject(
+                                            new Error('Must be a valid private CIDR (e.g. 10.13.13.1/24)')
+                                        );
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
                     >
                         <Input placeholder="10.13.13.1/24" />
                     </Form.Item>

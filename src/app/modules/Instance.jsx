@@ -43,7 +43,12 @@ export default function Instance({ intl, instance }) {
         <>
             <p>{`${intl['interface']}: ${instance.interface_name}`}</p>
             <p>{`${intl['last_counter_reset']}: `}</p>
-            <AddUserTable instanceId={instance.id} onClientAdded={fetchClients} intl={intl} />
+            <AddUserTable
+                instanceId={instance.id}
+                subnet={instance.server_address}
+                onClientAdded={fetchClients}
+                intl={intl}
+            />
             <Row gutter={[10, 10]} style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap' }}>
                 {clients.map((client) => (
                     <Col key={client.id}>

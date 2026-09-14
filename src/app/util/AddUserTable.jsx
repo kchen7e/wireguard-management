@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
+import { isIpInSubnet, parseCidr } from './ip.js';
 
-export default function AddUserTable({ instanceId, onClientAdded, intl }) {
+export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
@@ -52,7 +53,20 @@ export default function AddUserTable({ instanceId, onClientAdded, intl }) {
                     <Form.Item
                         label={intl['allocated_ip'] || 'Allocated IP'}
                         name="clientIp"
-                        rules={[{ required: true, message: 'Please input the allocated IP!' }]}
+                        rules={[
+                            { required: true, message: 'Please input the allocated IP!' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    const parsed = parseCidr(value);
+                                    if (!parsed) return Promise.reject(new Error('Invalid IP address'));
+                                    if (!isIpInSubnet(parsed.ip, subnet)) {
+                                        return Promise.reject(new Error(`Must be within ${subnet}`));
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
                     >
                         <Input placeholder="10.13.13.2/32" />
                     </Form.Item>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../db.js';
 import { generateKeyPair } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
+import { isValidPrivateCidr } from '../../util/ip.js';
 
 export async function GET() {
     try {
@@ -29,6 +30,13 @@ export async function POST(request) {
 
         if (!container_name || !server_address || !server_endpoint || !server_listen_port) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        if (!isValidPrivateCidr(server_address)) {
+            return NextResponse.json(
+                { error: 'Server address must be a valid private CIDR (e.g. 10.13.13.1/24)' },
+                { status: 400 }
+            );
         }
 
         const { publicKey, privateKey } = generateKeyPair();

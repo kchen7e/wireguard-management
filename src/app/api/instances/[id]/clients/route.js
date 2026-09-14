@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../db.js';
 import { generateKeyPair, generatePSK, reloadInstanceById } from '../../../lib/instance.js';
+import { isIpInSubnet, parseCidr } from '../../../../util/ip.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;
@@ -24,16 +25,25 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
     const { id } = await params;
     try {
-        const instanceResult = await query('SELECT id FROM instances WHERE id = $1', [id]);
+        const instanceResult = await query('SELECT id, server_address FROM instances WHERE id = $1', [id]);
         if (instanceResult.rowCount === 0) {
             return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
         }
+        const instance = instanceResult.rows[0];
 
         const body = await request.json();
         const { description, clientIp, allowedIPs = '0.0.0.0/0' } = body;
 
         if (!description || !clientIp) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        const clientAddress = parseCidr(clientIp);
+        if (!clientAddress || !isIpInSubnet(clientAddress.ip, instance.server_address)) {
+            return NextResponse.json(
+                { error: `Client IP must be within the server subnet ${instance.server_address}` },
+                { status: 400 }
+            );
         }
 
         const { publicKey, privateKey } = generateKeyPair();
