@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
+import { getInstanceById, getContainerUptime } from '../../../lib/instance.js';
 
 export async function GET(request, { params }) {
-    const allowedOrigin = 'https://your-frontend-domain.com';
-    const origin = request.headers.get('Origin');
+    const { id } = await params;
+    try {
+        const instance = await getInstanceById(id);
+        if (!instance) {
+            return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
+        }
 
-    if (origin !== allowedOrigin) {
-        return new Response('Forbidden', { status: 403 });
+        const startedAt = await getContainerUptime();
+        return NextResponse.json({ data: { startedAt } });
+    } catch (error) {
+        console.error('Error fetching container uptime:', error);
+        return NextResponse.json({ error: 'Failed to fetch container uptime' }, { status: 500 });
     }
-    const { id } = params;
-    return NextResponse.json({ message: `Test for ID: ${id}` });
 }
-
-// docker inspect --format '{{.State.StartedAt}}' 5db5d3470dfd
-// 2024-12-05T09:38:27.347115957Z

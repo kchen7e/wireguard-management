@@ -1,16 +1,29 @@
-import { useState } from 'react';
-import { DesktopOutlined, FileOutlined, PieChartOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { useEffect, useState } from 'react';
+import { PieChartOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, theme, Switch } from 'antd';
 
-import Instance from './modules/instance_1.jsx';
+import Instance from './modules/Instance.jsx';
 import { CN_ZH, EN_GB } from './intl';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 
 export default function App() {
     const [collapsed, setCollapsed] = useState(false);
     const [selectedKey, setSelectedKey] = useState('1');
     const [intl, setIntl] = useState(EN_GB);
+    const [instances, setInstances] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/instances')
+            .then((res) => res.json())
+            .then((payload) => {
+                if (payload.data) {
+                    setInstances(payload.data);
+                }
+            })
+            .catch((error) => console.error('Error fetching instances:', error));
+    }, []);
+
     function getItem(label, key, icon, children) {
         return {
             key,
@@ -20,14 +33,25 @@ export default function App() {
         };
     }
 
+    const instanceMenuItems = instances.map((instance) =>
+        getItem(`${intl['instance']} ${instance.name}`, `instance-${instance.id}`)
+    );
+
     const items = [
         getItem(intl['home'], '1', <PieChartOutlined />),
-        getItem(intl['vpn_instances'], 'sub1', <UserOutlined />, [getItem(`${intl['instance']} 1`, '3')]),
+        getItem(intl['vpn_instances'], 'sub1', <UserOutlined />, instanceMenuItems),
     ];
 
-    const keyToComponentMap = {
-        1: () => <div>Home Content</div>,
-        3: () => <Instance intl={intl} />,
+    const selectedInstance = instances.find((instance) => `instance-${instance.id}` === selectedKey);
+
+    const renderContent = () => {
+        if (selectedKey === '1') {
+            return <div>Home Content</div>;
+        }
+        if (selectedInstance) {
+            return <Instance intl={intl} instance={selectedInstance} />;
+        }
+        return <div>Not Found</div>;
     };
 
     const {
@@ -54,7 +78,6 @@ export default function App() {
                 />
             </Sider>
             <Layout>
-                {/* <Header style={{ padding: 0, background: colorBgContainer }} /> */}
                 <Content style={{ margin: '0 5rem' }}>
                     <div
                         style={{
@@ -64,7 +87,7 @@ export default function App() {
                             minHeight: 360,
                         }}
                     >
-                        {keyToComponentMap[selectedKey] ? keyToComponentMap[selectedKey]() : <div>Not Found</div>}
+                        {renderContent()}
                     </div>
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
