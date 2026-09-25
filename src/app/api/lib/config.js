@@ -1,4 +1,4 @@
-export const WG_LISTEN_PORT = 51820;
+import { networkCidr } from '../../util/ip.js';
 
 export function buildClientConfig(client, instance) {
     const keepalive = 25;
@@ -24,15 +24,23 @@ export function buildClientConfig(client, instance) {
 }
 
 export function buildServerConfig(instance, clients) {
+    const subnet = networkCidr(instance.server_address);
     const interfaceLines = [
         '[Interface]',
         `Address = ${instance.server_address}`,
-        `ListenPort = ${WG_LISTEN_PORT}`,
+        `ListenPort = ${instance.server_listen_port}`,
         `PrivateKey = ${instance.server_private_key}`,
     ];
 
     if (instance.dns) {
         interfaceLines.push(`DNS = ${instance.dns}`);
+    }
+
+    if (subnet) {
+        interfaceLines.push(
+            `PostUp = iptables -t nat -A POSTROUTING -s ${subnet} -o eth0 -j MASQUERADE`,
+            `PostDown = iptables -t nat -D POSTROUTING -s ${subnet} -o eth0 -j MASQUERADE`
+        );
     }
 
     const peerLines = [];

@@ -46,6 +46,16 @@ export function isIpInSubnet(ip, cidr) {
     return (ipToInt(ip) & range.mask) >>> 0 === range.network;
 }
 
+function intToIp(int) {
+    return [(int >>> 24) & 255, (int >>> 16) & 255, (int >>> 8) & 255, int & 255].join('.');
+}
+
+export function networkCidr(cidr) {
+    const range = parseCidr(cidr);
+    if (!range) return null;
+    return `${intToIp(range.network)}/${range.prefix}`;
+}
+
 export function isValidPrivateCidr(cidr) {
     const range = parseCidr(cidr);
     if (!range || !cidr.includes('/')) return false;

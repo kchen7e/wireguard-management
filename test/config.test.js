@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildClientConfig, buildServerConfig, WG_LISTEN_PORT } from '../src/app/api/lib/config.js';
+import { buildClientConfig, buildServerConfig } from '../src/app/api/lib/config.js';
 
 const instance = {
     server_private_key: 'server-private',
@@ -68,6 +68,8 @@ describe('Config builders', () => {
         expect(config).toContain('ListenPort = 51820');
         expect(config).toContain('PrivateKey = server-private');
         expect(config).toContain('DNS = 1.1.1.1');
+        expect(config).toContain('PostUp = iptables -t nat -A POSTROUTING -s 10.13.13.0/24 -o eth0 -j MASQUERADE');
+        expect(config).toContain('PostDown = iptables -t nat -D POSTROUTING -s 10.13.13.0/24 -o eth0 -j MASQUERADE');
         expect(config).toContain('[Peer]');
         expect(config).toContain('# Alice');
         expect(config).toContain('PublicKey = client-public');
@@ -82,7 +84,7 @@ describe('Config builders', () => {
         expect(config).not.toContain('DNS');
     });
 
-    it('keeps a fixed internal listen port while using the published port on the client endpoint', () => {
+    it('uses the instance listen port in both the server config and client endpoint', () => {
         const publishedInstance = { ...instance, server_listen_port: 60000 };
         const client = {
             description: 'Carol',
@@ -94,8 +96,7 @@ describe('Config builders', () => {
         };
 
         const serverConfig = buildServerConfig(publishedInstance, []);
-        expect(serverConfig).toContain(`ListenPort = ${WG_LISTEN_PORT}`);
-        expect(serverConfig).not.toContain('ListenPort = 60000');
+        expect(serverConfig).toContain('ListenPort = 60000');
 
         const clientConfig = buildClientConfig(client, publishedInstance);
         expect(clientConfig).toContain('Endpoint = vpn.example.com:60000');

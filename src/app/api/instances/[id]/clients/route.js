@@ -39,7 +39,14 @@ export async function POST(request, { params }) {
         }
 
         const clientAddress = parseCidr(clientIp);
-        if (!clientAddress || !isIpInSubnet(clientAddress.ip, instance.server_address)) {
+        if (!clientAddress || clientAddress.prefix !== 32) {
+            return NextResponse.json(
+                { error: 'Client IP must be a single host (e.g. 10.13.13.4 or 10.13.13.4/32)' },
+                { status: 400 }
+            );
+        }
+
+        if (!isIpInSubnet(clientAddress.ip, instance.server_address)) {
             return NextResponse.json(
                 { error: `Client IP must be within the server subnet ${instance.server_address}` },
                 { status: 400 }

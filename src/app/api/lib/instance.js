@@ -1,9 +1,9 @@
 import { randomBytes, generateKeyPairSync } from 'crypto';
 import { query } from '../db.js';
-import { buildServerConfig } from './config.js';
 import { atomicWriteFile } from './fs.js';
-import { runContainer } from './container.js';
-import { instanceConfigFile } from './paths.js';
+import { runKubectl } from './kubectl.js';
+import { buildInstanceManifest } from './manifest.js';
+import { instanceManifestFile } from './paths.js';
 
 export async function getInstanceById(id) {
     const result = await query(
@@ -63,13 +63,6 @@ export async function getContainerUptime() {
     return new Date().toISOString();
 }
 
-export async function writeServerConfig(instance, clients) {
-    const content = buildServerConfig(instance, clients);
-    const filePath = instanceConfigFile(instance);
-    await atomicWriteFile(filePath, content);
-    return filePath;
-}
-
 export function parseWgDump(dump) {
     const peers = new Set();
     for (const line of dump.split('\n')) {
@@ -94,25 +87,11 @@ export function verifyPeers(dump, clients) {
 }
 
 export async function reloadWireGuardContainer(instance, clients) {
-    const filePath = await writeServerConfig(instance, clients);
-    await runContainer([
-        'exec',
-        instance.container_name,
-        'wg',
-        'syncconf',
-        instance.interface_name,
-        '/etc/wireguard/wg0.conf',
-    ]);
-    const { stdout } = await runContainer([
-        'exec',
-        instance.container_name,
-        'wg',
-        'show',
-        instance.interface_name,
-        'dump',
-    ]);
-    const { status, missing, extra } = verifyPeers(stdout, clients);
-    return { success: status === 'applied', status, verified: true, missing, extra, configPath: filePath };
+    const filePath = instanceManifestFile(instance);
+    await atomicWriteFile(filePath, buildInstanceManifest(instance, clients));
+    await runKubectl(['apply', '-f', filePath]);
+    await runKubectl(['rollout', 'restart', `deployment/wg-${instance.id}`]);
+    return { success: true, reloaded: true, manifestPath: filePath };
 }
 
 export async function reloadInstanceById(id) {

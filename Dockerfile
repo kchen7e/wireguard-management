@@ -18,7 +18,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends podman podman-compose \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && curl -fsSL "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl \
+    && chmod +x /usr/local/bin/kubectl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/package.json ./package.json

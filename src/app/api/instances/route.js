@@ -28,7 +28,7 @@ export async function POST(request) {
             interface_name = 'wg0',
         } = body;
 
-        if (!container_name || !server_address || !server_endpoint || !server_listen_port) {
+        if (!container_name || !server_address || !server_endpoint) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -38,6 +38,8 @@ export async function POST(request) {
                 { status: 400 }
             );
         }
+
+        const listenPort = server_listen_port || (await nextAvailablePort());
 
         const { publicKey, privateKey } = generateKeyPair();
 
@@ -52,7 +54,7 @@ export async function POST(request) {
                 publicKey,
                 server_address,
                 server_endpoint,
-                server_listen_port,
+                listenPort,
                 dns || null,
             ]
         );
@@ -71,4 +73,9 @@ export async function POST(request) {
         console.error('Error creating instance:', error);
         return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 });
     }
+}
+
+async function nextAvailablePort() {
+    const result = await query('SELECT COALESCE(MAX(server_listen_port), 0) AS max_port FROM instances');
+    return Math.max(Number(result.rows[0].max_port) + 1, 51820);
 }

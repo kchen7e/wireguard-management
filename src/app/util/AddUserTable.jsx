@@ -60,6 +60,9 @@ export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }
                                     if (!value) return Promise.resolve();
                                     const parsed = parseCidr(value);
                                     if (!parsed) return Promise.reject(new Error('Invalid IP address'));
+                                    if (parsed.prefix !== 32) {
+                                        return Promise.reject(new Error('Must be a single host (e.g. 10.13.13.4)'));
+                                    }
                                     if (!isIpInSubnet(parsed.ip, subnet)) {
                                         return Promise.reject(new Error(`Must be within ${subnet}`));
                                     }
@@ -68,7 +71,7 @@ export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }
                             },
                         ]}
                     >
-                        <Input placeholder="10.13.13.2/32" />
+                        <Input placeholder="10.13.13.4" />
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" htmlType="submit" loading={loading}>

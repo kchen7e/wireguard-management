@@ -83,10 +83,9 @@ export default function CreateInstance({ intl, onCreated }) {
                     <Form.Item
                         label={intl['server_listen_port']}
                         name="serverListenPort"
-                        initialValue={51820}
-                        rules={[{ required: true, message: 'Please input the host port!' }]}
+                        extra="Leave blank to auto-assign a unique port"
                     >
-                        <InputNumber min={1} max={65535} style={{ width: '100%' }} />
+                        <InputNumber min={1} max={65535} style={{ width: '100%' }} placeholder="auto" />
                     </Form.Item>
                     <Form.Item label={intl['dns']} name="dns">
                         <Input placeholder="1.1.1.1" />
