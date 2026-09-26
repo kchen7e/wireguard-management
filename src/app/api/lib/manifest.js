@@ -1,4 +1,5 @@
 import { buildServerConfig } from './config.js';
+import { namespace } from './paths.js';
 
 const DEFAULT_IMAGE = 'docker.storm7e.de/wireguard-go:latest';
 
@@ -21,6 +22,7 @@ function buildSecret(name, serverConfig) {
         'apiVersion: v1',
         'kind: Secret',
         'metadata:',
+        `  namespace: ${namespace()}`,
         `  name: ${name}-conf`,
         'type: Opaque',
         'data:',
@@ -33,6 +35,7 @@ function buildDeployment(name, image) {
         'apiVersion: apps/v1',
         'kind: Deployment',
         'metadata:',
+        `  namespace: ${namespace()}`,
         `  name: ${name}`,
         'spec:',
         '  replicas: 1',
@@ -76,6 +79,7 @@ function buildService(name, instance) {
         'apiVersion: v1',
         'kind: Service',
         'metadata:',
+        `  namespace: ${namespace()}`,
         `  name: ${name}`,
         'spec:',
         '  type: LoadBalancer',

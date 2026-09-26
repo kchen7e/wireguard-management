@@ -3,7 +3,7 @@ import { query } from '../db.js';
 import { atomicWriteFile } from './fs.js';
 import { runKubectl } from './kubectl.js';
 import { buildInstanceManifest } from './manifest.js';
-import { instanceManifestFile } from './paths.js';
+import { instanceManifestFile, namespace } from './paths.js';
 
 export async function getInstanceById(id) {
     const result = await query(
@@ -90,7 +90,7 @@ export async function reloadWireGuardContainer(instance, clients) {
     const filePath = instanceManifestFile(instance);
     await atomicWriteFile(filePath, buildInstanceManifest(instance, clients));
     await runKubectl(['apply', '-f', filePath]);
-    await runKubectl(['rollout', 'restart', `deployment/wg-${instance.id}`]);
+    await runKubectl(['rollout', 'restart', '-n', namespace(), `deployment/wg-${instance.id}`]);
     return { success: true, reloaded: true, manifestPath: filePath };
 }
 

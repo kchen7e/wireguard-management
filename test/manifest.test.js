@@ -33,6 +33,7 @@ describe('buildInstanceManifest', () => {
         expect(yaml).toContain('name: wg-1');
         expect(yaml).toContain('name: wg-1-conf');
         expect(yaml).toContain('type: LoadBalancer');
+        expect(yaml).toContain('namespace: wireguard');
     });
 
     it('encodes the server config into the Secret data', () => {
