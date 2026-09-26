@@ -80,7 +80,7 @@ export default function CreateInstance({ intl, onCreated }) {
                                     if (!isValidServerCidr(value)) {
                                         return Promise.reject(
                                             new Error(
-                                                'Must be a private network CIDR of /24 or smaller (e.g. 172.28.15.0/24)'
+                                                'Must be a private network CIDR between /24 and /30 (e.g. 172.28.15.0/24)'
                                             )
                                         );
                                     }

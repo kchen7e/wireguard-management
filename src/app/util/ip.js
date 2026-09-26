@@ -62,16 +62,19 @@ export function isValidPrivateCidr(cidr) {
     return isPrivateIp(range.ip);
 }
 
+const MIN_SERVER_PREFIX = 24;
+const MAX_SERVER_PREFIX = 30;
+
 export function isValidServerCidr(cidr) {
     const range = parseCidr(cidr);
     if (!range || !cidr.includes('/')) return false;
-    if (range.prefix < 24) return false;
+    if (range.prefix < MIN_SERVER_PREFIX || range.prefix > MAX_SERVER_PREFIX) return false;
     if (!isPrivateIp(range.ip)) return false;
     return ipToInt(range.ip) === range.network;
 }
 
 export function serverHostAddress(cidr) {
     const range = parseCidr(cidr);
-    if (!range) return null;
+    if (!range || range.prefix > MAX_SERVER_PREFIX) return null;
     return `${intToIp(range.network + 1)}/${range.prefix}`;
 }

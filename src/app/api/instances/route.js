@@ -43,7 +43,7 @@ export async function POST(request) {
 
         if (!isValidServerCidr(server_address)) {
             return NextResponse.json(
-                { error: 'Server IP must be a private network CIDR of /24 or smaller (e.g. 172.28.15.0/24)' },
+                { error: 'Server IP must be a private network CIDR between /24 and /30 (e.g. 172.28.15.0/24)' },
                 { status: 400 }
             );
         }
