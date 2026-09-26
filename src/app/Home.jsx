@@ -38,9 +38,7 @@ export default function App() {
         };
     }
 
-    const instanceMenuItems = instances.map((instance) =>
-        getItem(`${intl['instance']} ${instance.container_name}`, `instance-${instance.id}`)
-    );
+    const instanceMenuItems = instances.map((instance) => getItem(instance.container_name, `instance-${instance.id}`));
 
     const items = [
         getItem(intl['home'], '1', <PieChartOutlined />),

@@ -1,4 +1,4 @@
-import { networkCidr } from '../../util/ip.js';
+import { networkCidr, serverHostAddress } from '../../util/ip.js';
 
 export function buildClientConfig(client, instance) {
     const keepalive = 25;
@@ -27,7 +27,7 @@ export function buildServerConfig(instance, clients) {
     const subnet = networkCidr(instance.server_address);
     const interfaceLines = [
         '[Interface]',
-        `Address = ${instance.server_address}`,
+        `Address = ${serverHostAddress(instance.server_address)}`,
         `ListenPort = ${instance.server_listen_port}`,
         `PrivateKey = ${instance.server_private_key}`,
     ];

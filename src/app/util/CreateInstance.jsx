@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, message } from 'antd';
-import { isValidIpv4, isValidPrivateCidr } from './ip.js';
+import { isValidIpv4, isValidServerCidr } from './ip.js';
+import { isValidInstanceName } from './name.js';
 
 export default function CreateInstance({ intl, onCreated }) {
     const [open, setOpen] = useState(false);
@@ -50,21 +51,14 @@ export default function CreateInstance({ intl, onCreated }) {
                     <Form.Item
                         label={intl['instance_name']}
                         name="containerName"
-                        rules={[{ required: true, message: 'Please input the instance name!' }]}
-                    >
-                        <Input placeholder="wireguard-1" />
-                    </Form.Item>
-                    <Form.Item
-                        label={intl['server_ip']}
-                        name="serverAddress"
                         rules={[
-                            { required: true, message: 'Please input the server IP!' },
+                            { required: true, message: 'Please input the instance name!' },
                             {
                                 validator: (_, value) => {
                                     if (!value) return Promise.resolve();
-                                    if (!isValidPrivateCidr(value)) {
+                                    if (!isValidInstanceName(value)) {
                                         return Promise.reject(
-                                            new Error('Must be a valid private CIDR (e.g. 10.13.13.1/24)')
+                                            new Error('Lowercase letters, digits and hyphens only (e.g. wireguard-1)')
                                         );
                                     }
                                     return Promise.resolve();
@@ -72,14 +66,38 @@ export default function CreateInstance({ intl, onCreated }) {
                             },
                         ]}
                     >
-                        <Input placeholder="10.13.13.1/24" />
+                        <Input placeholder="wireguard-1" />
+                    </Form.Item>
+                    <Form.Item
+                        label={intl['server_ip']}
+                        name="serverAddress"
+                        initialValue="172.28.15.0/24"
+                        rules={[
+                            { required: true, message: 'Please input the server IP!' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    if (!isValidServerCidr(value)) {
+                                        return Promise.reject(
+                                            new Error(
+                                                'Must be a private network CIDR of /24 or smaller (e.g. 172.28.15.0/24)'
+                                            )
+                                        );
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
+                    >
+                        <Input placeholder="172.28.15.0/24" />
                     </Form.Item>
                     <Form.Item
                         label={intl['server_endpoint']}
                         name="serverEndpoint"
+                        initialValue="wg.storm7e.de"
                         rules={[{ required: true, message: 'Please input the server endpoint!' }]}
                     >
-                        <Input placeholder="vpn.example.com" />
+                        <Input placeholder="wg.storm7e.de" />
                     </Form.Item>
                     <Form.Item
                         label={intl['server_listen_port']}

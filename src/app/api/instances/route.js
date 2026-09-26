@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { query } from '../db.js';
 import { generateKeyPair } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
-import { isValidPrivateCidr, isValidIpv4 } from '../../util/ip.js';
+import { isValidServerCidr, isValidIpv4 } from '../../util/ip.js';
+import { isValidInstanceName } from '../../util/name.js';
 
 export async function GET() {
     try {
@@ -33,9 +34,16 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        if (!isValidPrivateCidr(server_address)) {
+        if (!isValidInstanceName(container_name)) {
             return NextResponse.json(
-                { error: 'Server address must be a valid private CIDR (e.g. 10.13.13.1/24)' },
+                { error: 'Instance name must be lowercase letters, digits and hyphens (e.g. wireguard-1)' },
+                { status: 400 }
+            );
+        }
+
+        if (!isValidServerCidr(server_address)) {
+            return NextResponse.json(
+                { error: 'Server IP must be a private network CIDR of /24 or smaller (e.g. 172.28.15.0/24)' },
                 { status: 400 }
             );
         }

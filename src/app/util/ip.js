@@ -61,3 +61,17 @@ export function isValidPrivateCidr(cidr) {
     if (!range || !cidr.includes('/')) return false;
     return isPrivateIp(range.ip);
 }
+
+export function isValidServerCidr(cidr) {
+    const range = parseCidr(cidr);
+    if (!range || !cidr.includes('/')) return false;
+    if (range.prefix < 24) return false;
+    if (!isPrivateIp(range.ip)) return false;
+    return ipToInt(range.ip) === range.network;
+}
+
+export function serverHostAddress(cidr) {
+    const range = parseCidr(cidr);
+    if (!range) return null;
+    return `${intToIp(range.network + 1)}/${range.prefix}`;
+}

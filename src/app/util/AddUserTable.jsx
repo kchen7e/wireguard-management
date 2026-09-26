@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
 import { isIpInSubnet, parseCidr } from './ip.js';
+import { isValidDescription } from './name.js';
 
 export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }) {
     const [open, setOpen] = useState(false);
@@ -46,7 +47,20 @@ export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }
                     <Form.Item
                         label={intl['description'] || 'Description'}
                         name="description"
-                        rules={[{ required: true, message: 'Please input the description!' }]}
+                        rules={[
+                            { required: true, message: 'Please input the description!' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    if (!isValidDescription(value)) {
+                                        return Promise.reject(
+                                            new Error('Letters, digits, spaces and ._- only (e.g. Alice)')
+                                        );
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
                     >
                         <Input />
                     </Form.Item>

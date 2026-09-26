@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../db.js';
 import { generateKeyPair, generatePSK, reloadInstanceById } from '../../../lib/instance.js';
 import { isIpInSubnet, parseCidr } from '../../../../util/ip.js';
+import { isValidDescription } from '../../../../util/name.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;
@@ -36,6 +37,13 @@ export async function POST(request, { params }) {
 
         if (!description || !clientIp) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        if (!isValidDescription(description)) {
+            return NextResponse.json(
+                { error: 'Description may only contain letters, digits, spaces and ._- (e.g. Alice)' },
+                { status: 400 }
+            );
         }
 
         const clientAddress = parseCidr(clientIp);
