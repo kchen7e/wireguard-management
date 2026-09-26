@@ -41,7 +41,7 @@ export default function Instance({ intl, instance }) {
 
     return (
         <>
-            <p>{`${intl['interface']}: ${instance.interface_name}`}</p>
+            <p>{`${intl['server_ip']}: ${instance.server_address}`}</p>
             <p>{`${intl['last_counter_reset']}: `}</p>
             <AddUserTable
                 instanceId={instance.id}

@@ -31,10 +31,17 @@ async function ensureSchemaUnsafe() {
             server_endpoint TEXT NOT NULL,
             server_listen_port INTEGER NOT NULL DEFAULT 51820,
             dns TEXT,
+            load_balancer_ip TEXT,
             created_at TIMESTAMPTZ DEFAULT NOW(),
             updated_at TIMESTAMPTZ DEFAULT NOW()
         );
     `);
+
+    try {
+        await activePool.query(`ALTER TABLE instances ADD COLUMN IF NOT EXISTS load_balancer_ip TEXT`);
+    } catch (error) {
+        console.warn(`Skipping migration (${error.message})`);
+    }
 
     await activePool.query(`
         CREATE TABLE IF NOT EXISTS clients (

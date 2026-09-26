@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { query } from '../db.js';
 import { generateKeyPair } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
-import { isValidPrivateCidr } from '../../util/ip.js';
+import { isValidPrivateCidr, isValidIpv4 } from '../../util/ip.js';
 
 export async function GET() {
     try {
         const result = await query(
-            `SELECT id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns FROM instances ORDER BY id`
+            `SELECT id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip FROM instances ORDER BY id`
         );
         return NextResponse.json({ data: result.rows });
     } catch (error) {
@@ -24,6 +24,7 @@ export async function POST(request) {
             server_address,
             server_endpoint,
             server_listen_port,
+            load_balancer_ip,
             dns,
             interface_name = 'wg0',
         } = body;
@@ -39,14 +40,25 @@ export async function POST(request) {
             );
         }
 
+        if (load_balancer_ip && !isValidIpv4(load_balancer_ip)) {
+            return NextResponse.json({ error: 'Reserved IP must be a valid IPv4 address' }, { status: 400 });
+        }
+
+        if (load_balancer_ip) {
+            const existing = await query('SELECT id FROM instances WHERE load_balancer_ip = $1', [load_balancer_ip]);
+            if (existing.rowCount > 0) {
+                return NextResponse.json({ error: `IP ${load_balancer_ip} is already reserved` }, { status: 409 });
+            }
+        }
+
         const listenPort = server_listen_port || (await nextAvailablePort());
 
         const { publicKey, privateKey } = generateKeyPair();
 
         const result = await query(
-            `INSERT INTO instances (container_name, interface_name, server_private_key, server_public_key, server_address, server_endpoint, server_listen_port, dns)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns`,
+            `INSERT INTO instances (container_name, interface_name, server_private_key, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             RETURNING id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip`,
             [
                 container_name,
                 interface_name,
@@ -56,6 +68,7 @@ export async function POST(request) {
                 server_endpoint,
                 listenPort,
                 dns || null,
+                load_balancer_ip || null,
             ]
         );
 

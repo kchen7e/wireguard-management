@@ -9,7 +9,7 @@ import { configDir, instanceManifestFile } from './paths.js';
 
 const INSTANCE_SELECT = `
     id, container_name, interface_name, server_private_key, server_public_key,
-    server_address, server_endpoint, server_listen_port, dns
+    server_address, server_endpoint, server_listen_port, dns, load_balancer_ip
 `;
 
 export async function reconcileInstances() {

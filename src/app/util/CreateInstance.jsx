@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, message } from 'antd';
-import { isValidPrivateCidr } from './ip.js';
+import { isValidIpv4, isValidPrivateCidr } from './ip.js';
 
 export default function CreateInstance({ intl, onCreated }) {
     const [open, setOpen] = useState(false);
@@ -18,6 +18,7 @@ export default function CreateInstance({ intl, onCreated }) {
                     server_address: values.serverAddress,
                     server_endpoint: values.serverEndpoint,
                     server_listen_port: values.serverListenPort,
+                    load_balancer_ip: values.loadBalancerIp || null,
                     dns: values.dns || null,
                 }),
             });
@@ -86,6 +87,24 @@ export default function CreateInstance({ intl, onCreated }) {
                         extra="Leave blank to auto-assign a unique port"
                     >
                         <InputNumber min={1} max={65535} style={{ width: '100%' }} placeholder="auto" />
+                    </Form.Item>
+                    <Form.Item
+                        label={intl['load_balancer_ip']}
+                        name="loadBalancerIp"
+                        extra="Leave blank to auto-assign from the MetalLB pool"
+                        rules={[
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    if (!isValidIpv4(value)) {
+                                        return Promise.reject(new Error('Must be a valid IPv4 address'));
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
+                    >
+                        <Input placeholder="192.168.249.201" />
                     </Form.Item>
                     <Form.Item label={intl['dns']} name="dns">
                         <Input placeholder="1.1.1.1" />

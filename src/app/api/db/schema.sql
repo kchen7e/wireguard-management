@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS instances (
     server_endpoint TEXT NOT NULL,
     server_listen_port INTEGER NOT NULL DEFAULT 51820,
     dns TEXT,
+    load_balancer_ip TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

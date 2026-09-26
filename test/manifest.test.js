@@ -48,4 +48,14 @@ describe('buildInstanceManifest', () => {
         expect(yaml).toContain('port: 60000');
         expect(yaml).toContain('targetPort: 60000');
     });
+
+    it('pins a reserved IP via the MetalLB annotation when set', () => {
+        const yaml = buildInstanceManifest({ ...instance, load_balancer_ip: '192.168.249.201' }, clients);
+        expect(yaml).toContain('metallb.universe.tf/loadBalancerIPs: 192.168.249.201');
+    });
+
+    it('omits the MetalLB annotation when no IP is reserved', () => {
+        const yaml = buildInstanceManifest(instance, clients);
+        expect(yaml).not.toContain('loadBalancerIPs');
+    });
 });

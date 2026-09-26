@@ -75,12 +75,13 @@ function buildDeployment(name, image) {
 }
 
 function buildService(name, instance) {
-    return [
-        'apiVersion: v1',
-        'kind: Service',
-        'metadata:',
-        `  namespace: ${namespace()}`,
-        `  name: ${name}`,
+    const lines = ['apiVersion: v1', 'kind: Service', 'metadata:', `  namespace: ${namespace()}`, `  name: ${name}`];
+
+    if (instance.load_balancer_ip) {
+        lines.push('  annotations:', `    metallb.universe.tf/loadBalancerIPs: ${instance.load_balancer_ip}`);
+    }
+
+    lines.push(
         'spec:',
         '  type: LoadBalancer',
         '  allocateLoadBalancerNodePorts: false',
@@ -90,6 +91,8 @@ function buildService(name, instance) {
         '    - name: wireguard',
         '      protocol: UDP',
         `      port: ${instance.server_listen_port}`,
-        `      targetPort: ${instance.server_listen_port}`,
-    ].join('\n');
+        `      targetPort: ${instance.server_listen_port}`
+    );
+
+    return lines.join('\n');
 }
