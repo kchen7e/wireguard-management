@@ -46,9 +46,10 @@ export default function ClientCard({ client, intl, onDeleted }) {
         setDeleting(true);
         try {
             const response = await fetch(`/api/clients/${client.id}`, { method: 'DELETE' });
+            const payload = await response.json().catch(() => ({}));
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to delete client');
+                onDeleted();
+                throw new Error(payload.error || 'Failed to delete client');
             }
             message.success('Client deleted');
             onDeleted();

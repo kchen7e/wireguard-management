@@ -12,14 +12,17 @@ export async function DELETE(request, { params }) {
 
         await query('DELETE FROM clients WHERE id = $1', [id]);
 
-        let reloaded = true;
         try {
             await reloadInstanceById(client.instance_id);
         } catch (error) {
-            reloaded = false;
+            console.error('Error reloading WireGuard after client delete:', error);
+            return NextResponse.json(
+                { error: `Client deleted but WireGuard reload failed: ${error.message}` },
+                { status: 500 }
+            );
         }
 
-        return NextResponse.json({ success: true, reloaded });
+        return NextResponse.json({ success: true, reloaded: true });
     } catch (error) {
         console.error('Error deleting client:', error);
         return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
