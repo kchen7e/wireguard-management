@@ -8,7 +8,7 @@ import { useApp } from '../../AppContext.jsx';
 
 export default function InstancePage() {
     const params = useParams();
-    const { intl, loadInstance, instancesById } = useApp();
+    const { intl, instancesById, loadInstance } = useApp();
     const [instance, setInstance] = useState(() => instancesById[params.id] || null);
     const [notFound, setNotFound] = useState(false);
     const [error, setError] = useState(null);

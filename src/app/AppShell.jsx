@@ -21,16 +21,13 @@ export default function AppShell({ children }) {
     const pathname = usePathname();
 
     const refreshInstances = useCallback(async () => {
-        const payload = await apiRequest('/api/instances');
-        const list = payload.data || [];
-        setInstances(list);
-        setInstancesById((prev) => {
-            const next = { ...prev };
-            for (const instance of list) {
-                next[instance.id] = instance;
-            }
-            return next;
-        });
+        try {
+            const payload = await apiRequest('/api/instances');
+            setInstances(payload.data || []);
+        } catch (error) {
+            console.error('Error fetching instances:', error);
+            setInstances([]);
+        }
     }, []);
 
     const loadInstance = useCallback(async (id) => {
@@ -46,28 +43,6 @@ export default function AppShell({ children }) {
     const loadClients = useCallback(async (instanceId) => {
         const clientsPayload = await apiRequest(`/api/instances/${instanceId}/clients`);
         const clientCollect = clientsPayload.data || [];
-
-        let stats = {};
-        try {
-            const statsPayload = await apiRequest(`/api/instances/${instanceId}/wg`);
-            stats = statsPayload.data || {};
-        } catch (error) {
-            // WireGuard stats are non-critical; keep going without them.
-        }
-
-        for (const [key, value] of Object.entries(stats)) {
-            for (const collect of clientCollect) {
-                if (key === collect.public_key && value) {
-                    if ('last_seen' in value) {
-                        collect['last_seen'] = value['last_seen'];
-                    }
-                    if ('traffic_counter' in value) {
-                        collect['traffic_counter'] = value['traffic_counter'];
-                    }
-                }
-            }
-        }
-
         setClientsByInstance((prev) => ({ ...prev, [instanceId]: clientCollect }));
         return clientCollect;
     }, []);
@@ -139,7 +114,7 @@ export default function AppShell({ children }) {
     }, []);
 
     useEffect(() => {
-        refreshInstances().catch((error) => console.error('Error fetching instances:', error));
+        refreshInstances();
     }, [refreshInstances]);
 
     const items = [

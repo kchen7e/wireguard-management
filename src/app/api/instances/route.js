@@ -8,9 +8,7 @@ import { lbMode } from '../lib/templates.js';
 
 export async function GET() {
     try {
-        const result = await query(
-            `SELECT id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip FROM instances ORDER BY id`
-        );
+        const result = await query(`SELECT id, container_name FROM instances ORDER BY id`);
         return NextResponse.json({ data: result.rows });
     } catch (error) {
         console.error('Error fetching instances:', error);
