@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { Button, Card, Collapse, Form, Image, Input, Modal, Popconfirm, message } from 'antd';
 import { DeleteOutlined, EditOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { isValidDescription } from './name.js';
+import { useApp } from '../AppContext.jsx';
 
-export default function ClientCard({ client, intl, onChanged }) {
+export default function ClientCard({ client, intl }) {
+    const { deleteClient, updateClient } = useApp();
     const [showQr, setShowQr] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [form] = Form.useForm();
 
     const downloadConfig = () => {
@@ -14,18 +17,15 @@ export default function ClientCard({ client, intl, onChanged }) {
     };
 
     const handleDelete = async () => {
+        setDeleting(true);
         try {
-            const response = await fetch(`/api/clients/${client.id}`, { method: 'DELETE' });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                onChanged();
-                throw new Error(payload.error || 'Failed to delete client');
-            }
+            await deleteClient(client.id);
             message.success('Client deleted');
-            onChanged();
         } catch (error) {
             console.error('Error deleting client:', error);
             message.error(error.message);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -37,18 +37,9 @@ export default function ClientCard({ client, intl, onChanged }) {
     const handleUpdate = async (values) => {
         setSaving(true);
         try {
-            const response = await fetch(`/api/clients/${client.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ description: values.description }),
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(payload.error || 'Failed to update client');
-            }
+            await updateClient(client.id, values);
             message.success('Client updated');
             setEditOpen(false);
-            onChanged();
         } catch (error) {
             console.error('Error updating client:', error);
             message.error(error.message);

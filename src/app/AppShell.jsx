@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 
 import { AppContext } from './AppContext.jsx';
 import { CN_ZH, EN_GB } from './intl';
+import { apiRequest } from './util/api.js';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -15,21 +16,130 @@ export default function AppShell({ children }) {
     const [collapsed, setCollapsed] = useState(false);
     const [intl, setIntl] = useState(EN_GB);
     const [instances, setInstances] = useState([]);
+    const [instancesById, setInstancesById] = useState({});
+    const [clientsByInstance, setClientsByInstance] = useState({});
     const pathname = usePathname();
 
-    const refreshInstances = useCallback(() => {
-        fetch('/api/instances')
-            .then((res) => res.json())
-            .then((payload) => {
-                if (payload.data) {
-                    setInstances(payload.data);
+    const refreshInstances = useCallback(async () => {
+        const payload = await apiRequest('/api/instances');
+        const list = payload.data || [];
+        setInstances(list);
+        setInstancesById((prev) => {
+            const next = { ...prev };
+            for (const instance of list) {
+                next[instance.id] = instance;
+            }
+            return next;
+        });
+    }, []);
+
+    const loadInstance = useCallback(async (id) => {
+        const payload = await apiRequest(`/api/instances/${id}`);
+        const instance = payload.data;
+        if (!instance) {
+            throw new Error('Instance not found');
+        }
+        setInstancesById((prev) => ({ ...prev, [id]: instance }));
+        return instance;
+    }, []);
+
+    const loadClients = useCallback(async (instanceId) => {
+        const clientsPayload = await apiRequest(`/api/instances/${instanceId}/clients`);
+        const clientCollect = clientsPayload.data || [];
+
+        let stats = {};
+        try {
+            const statsPayload = await apiRequest(`/api/instances/${instanceId}/wg`);
+            stats = statsPayload.data || {};
+        } catch (error) {
+            // WireGuard stats are non-critical; keep going without them.
+        }
+
+        for (const [key, value] of Object.entries(stats)) {
+            for (const collect of clientCollect) {
+                if (key === collect.public_key && value) {
+                    if ('last_seen' in value) {
+                        collect['last_seen'] = value['last_seen'];
+                    }
+                    if ('traffic_counter' in value) {
+                        collect['traffic_counter'] = value['traffic_counter'];
+                    }
                 }
-            })
-            .catch((error) => console.error('Error fetching instances:', error));
+            }
+        }
+
+        setClientsByInstance((prev) => ({ ...prev, [instanceId]: clientCollect }));
+        return clientCollect;
+    }, []);
+
+    const addClient = useCallback(async (instanceId, values) => {
+        const payload = await apiRequest(`/api/instances/${instanceId}/clients`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                description: values.description,
+                clientIp: values.clientIp,
+            }),
+        });
+        const created = payload.data;
+        setClientsByInstance((prev) => ({
+            ...prev,
+            [instanceId]: [...(prev[instanceId] || []), created],
+        }));
+        return created;
+    }, []);
+
+    const updateClient = useCallback(async (clientId, values) => {
+        const payload = await apiRequest(`/api/clients/${clientId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: values.description }),
+        });
+        const updated = payload.data;
+        setClientsByInstance((prev) => {
+            const next = { ...prev };
+            for (const [instanceId, clients] of Object.entries(prev)) {
+                next[instanceId] = clients.map((client) =>
+                    client.id === clientId ? { ...client, ...updated } : client
+                );
+            }
+            return next;
+        });
+        return updated;
+    }, []);
+
+    const deleteClient = useCallback(async (clientId) => {
+        await apiRequest(`/api/clients/${clientId}`, { method: 'DELETE' });
+        setClientsByInstance((prev) => {
+            const next = {};
+            for (const [instanceId, clients] of Object.entries(prev)) {
+                next[instanceId] = clients.filter((client) => client.id !== clientId);
+            }
+            return next;
+        });
+    }, []);
+
+    const createInstance = useCallback(async (values) => {
+        const payload = await apiRequest('/api/instances', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                container_name: values.containerName,
+                server_address: values.serverAddress,
+                server_endpoint: values.serverEndpoint,
+                server_listen_port: values.serverListenPort,
+                load_balancer_ip: values.loadBalancerIp || null,
+                dns: values.dns || null,
+            }),
+        });
+        const created = payload.data;
+        setInstances((prev) => [...prev, created]);
+        setInstancesById((prev) => ({ ...prev, [created.id]: created }));
+        return created;
     }, []);
 
     useEffect(() => {
-        refreshInstances();
+        refreshInstances().catch((error) => console.error('Error fetching instances:', error));
     }, [refreshInstances]);
 
     const items = [
@@ -58,7 +168,21 @@ export default function AppShell({ children }) {
     };
 
     return (
-        <AppContext.Provider value={{ intl, instances, refreshInstances }}>
+        <AppContext.Provider
+            value={{
+                intl,
+                instances,
+                instancesById,
+                clientsByInstance,
+                refreshInstances,
+                loadInstance,
+                loadClients,
+                addClient,
+                updateClient,
+                deleteClient,
+                createInstance,
+            }}
+        >
             <Layout style={{ minHeight: '100vh' }}>
                 <Sider collapsible={false} collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                     <Menu

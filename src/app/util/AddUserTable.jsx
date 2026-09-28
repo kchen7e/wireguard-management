@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
 import { isIpInSubnet, parseCidr } from './ip.js';
 import { isValidDescription } from './name.js';
+import { useApp } from '../AppContext.jsx';
 
-export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }) {
+export default function AddUserTable({ instanceId, subnet, intl }) {
+    const { addClient } = useApp();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
@@ -11,24 +13,10 @@ export default function AddUserTable({ instanceId, subnet, onClientAdded, intl }
     const handleAddClient = async (values) => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/instances/${instanceId}/clients`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    description: values.description,
-                    clientIp: values.clientIp,
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to add client');
-            }
-
+            await addClient(instanceId, values);
             message.success('Client added');
             setOpen(false);
             form.resetFields();
-            onClientAdded();
         } catch (error) {
             console.error('Error adding client:', error);
             message.error(error.message);
