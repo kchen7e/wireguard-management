@@ -74,7 +74,7 @@ export default function CreateInstance({ intl }) {
                         <Input placeholder="wireguard-1" />
                     </Form.Item>
                     <Form.Item
-                        label={intl['server_vpn_ip']}
+                        label={intl['server_vpn_subnet']}
                         name="serverVpnIp"
                         initialValue="172.28.15.0/24"
                         rules={[

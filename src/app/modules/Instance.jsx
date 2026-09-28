@@ -29,7 +29,7 @@ export default function Instance({ intl, instance }) {
             <div className="wg-page-header">
                 <h1 className="wg-page-title">{instance.container_name}</h1>
                 <span className="wg-tag">
-                    {intl['server_vpn_ip']}: {instance.server_vpn_ip}
+                    {intl['server_vpn_subnet']}: {instance.server_vpn_ip}
                 </span>
             </div>
             {instance.server_public_key && (
