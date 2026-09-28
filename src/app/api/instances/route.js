@@ -4,6 +4,7 @@ import { generateKeyPair } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
 import { isValidServerCidr, isValidIpv4 } from '../../util/ip.js';
 import { isValidInstanceName } from '../../util/name.js';
+import { lbMode } from '../lib/templates.js';
 
 export async function GET() {
     try {
@@ -52,10 +53,19 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Reserved IP must be a valid IPv4 address' }, { status: 400 });
         }
 
-        if (load_balancer_ip) {
+        const shared = lbMode() === 'shared';
+
+        if (!shared && load_balancer_ip) {
             const existing = await query('SELECT id FROM instances WHERE load_balancer_ip = $1', [load_balancer_ip]);
             if (existing.rowCount > 0) {
                 return NextResponse.json({ error: `IP ${load_balancer_ip} is already reserved` }, { status: 409 });
+            }
+        }
+
+        if (shared && server_listen_port) {
+            const clash = await query('SELECT id FROM instances WHERE server_listen_port = $1', [server_listen_port]);
+            if (clash.rowCount > 0) {
+                return NextResponse.json({ error: `Port ${server_listen_port} is already in use` }, { status: 409 });
             }
         }
 

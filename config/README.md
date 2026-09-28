@@ -45,7 +45,7 @@ races MetalLB. Disable it in `/etc/rancher/k3s/config.yaml`:
 
 ```yaml
 disable:
-  - servicelb
+    - servicelb
 ```
 
 then `sudo systemctl restart k3s`.
@@ -59,9 +59,60 @@ kubectl get svc -n wireguard -o wide
 Each `wg-<id>` Service should show an `EXTERNAL-IP` from the MetalLB pool
 instead of `<pending>`.
 
-## 6. Router + DNS
+## 6. Load balancer mode (dedicated vs shared IP)
 
-Each instance Service gets its own VIP, all on UDP `server_listen_port`.
+Manifests are rendered from Jinja2-style templates in
+`src/app/api/lib/templates/*.tpl` (`{{ var }}` and `{% if %}` blocks). The
+Service template is chosen by the `LB_MODE` env var, via `lbMode()` /
+`serviceTemplateFactory()` in `src/app/api/lib/templates.js`.
+
+- `dedicated` (default): each instance gets its own MetalLB IP.
+- `shared`: all instances share one IP (from `SHARED_LOAD_BALANCER_IP`) and are
+  distinguished by UDP port.
+
+To switch, set `LB_MODE=shared` and `SHARED_LOAD_BALANCER_IP=<ip>` in the
+environment (e.g. `.env`) and reconcile.
+
+### dedicated (default)
+
+Each Service pins its own IP, and `load_balancer_ip` must be unique across
+instances:
+
+```yaml
+metadata:
+    annotations:
+        metallb.io/loadBalancerIPs: <instance.load_balancer_ip>
+```
+
+### shared
+
+The shared IP is a single global value from `SHARED_LOAD_BALANCER_IP`; the
+per-instance `load_balancer_ip` field is ignored. Every Service pins that IP and
+adds the MetalLB shared-IP annotation, so MetalLB merges their distinct UDP
+ports onto it. The sharing key equals the shared IP, and `server_listen_port`
+must be unique across instances:
+
+```yaml
+metadata:
+    annotations:
+        metallb.io/loadBalancerIPs: <shared IP>
+        metallb.io/allow-shared-ip: <shared IP>
+```
+
+If `SHARED_LOAD_BALANCER_IP` is not set while `LB_MODE=shared`, manifest
+generation fails with an error rather than silently misconfiguring the Services.
+
+Notes:
+
+- `externalTrafficPolicy` stays `Cluster` (the default). Setting `Local` breaks
+  sharing when the Services have different pod selectors.
+- In both modes the client endpoint is `<server_endpoint>:<server_listen_port>`,
+  so the port is what distinguishes instances at the edge.
+
+## 7. Router + DNS
+
+- Dedicated mode: each instance Service gets its own VIP.
+- Shared mode: all instances share one VIP; the port separates them.
 
 - LAN clients: `wg-<id>.example.com` -> the VIP (split-horizon DNS).
 - Internet clients: `wg-<id>.example.com` -> the public IP; the router
