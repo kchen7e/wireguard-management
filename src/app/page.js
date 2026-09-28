@@ -1,12 +1,15 @@
 'use client';
 
-// import Image from "next/image";
-import styles from './page.module.css';
-
-import { useState } from 'react';
-
-import App from './Home.jsx';
+import CreateInstance from './util/CreateInstance.jsx';
+import { useApp } from './AppContext.jsx';
 
 export default function Home() {
-    return <App />;
+    const { intl, refreshInstances } = useApp();
+
+    return (
+        <div>
+            <p>Home Content</p>
+            <CreateInstance intl={intl} onCreated={refreshInstances} />
+        </div>
+    );
 }

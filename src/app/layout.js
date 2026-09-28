@@ -2,6 +2,8 @@ import localFont from 'next/font/local';
 // import './globals.css';
 import 'antd/dist/reset.css';
 
+import AppShell from './AppShell.jsx';
+
 const geistSans = localFont({
     src: './fonts/GeistVF.woff',
     variable: '--font-geist-sans',
@@ -21,7 +23,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en-GB">
-            <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+            <body className={`${geistSans.variable} ${geistMono.variable}`}>
+                <AppShell>{children}</AppShell>
+            </body>
         </html>
     );
 }
