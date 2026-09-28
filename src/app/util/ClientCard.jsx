@@ -168,6 +168,8 @@ export default function ClientCard({ client, intl }) {
 
             <Collapse
                 ghost
+                expandIconPlacement="end"
+                styles={{ header: { paddingLeft: 0 }, body: { paddingLeft: 0, paddingRight: 0 } }}
                 items={[
                     {
                         key: client.public_key,
