@@ -11,5 +11,5 @@ AllowedIPs = {{ allowed_ips }}
 Endpoint = {{ endpoint }}
 {% endif %}
 {% if keepalive %}
-PersistentKeepalive = {{ keepalive }}
+# PersistentKeepalive = {{ keepalive }}
 {% endif %}
