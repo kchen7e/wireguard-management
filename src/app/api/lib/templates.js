@@ -12,6 +12,9 @@ const TEMPLATES = {
     deployment: readTemplate('deployment.yaml.tpl'),
     'service-dedicated': readTemplate('service-dedicated.yaml.tpl'),
     'service-shared': readTemplate('service-shared.yaml.tpl'),
+    'server-conf': readTemplate('server.conf.tpl'),
+    'client-conf': readTemplate('client.conf.tpl'),
+    'peer-conf': readTemplate('peer.conf.tpl'),
 };
 
 const VARIABLE_RE = /\{\{\s*([\w.]+)\s*\}\}/g;
@@ -69,4 +72,8 @@ export function serviceTemplateFactory() {
     return SERVICE_TEMPLATES[lbMode()] || SERVICE_TEMPLATES.dedicated;
 }
 
-export { secretTemplate, deploymentTemplate };
+const serverConfigTemplate = (data) => renderTemplate(TEMPLATES['server-conf'], data);
+const clientConfigTemplate = (data) => renderTemplate(TEMPLATES['client-conf'], data);
+const peerConfigTemplate = (data) => renderTemplate(TEMPLATES['peer-conf'], data);
+
+export { secretTemplate, deploymentTemplate, serverConfigTemplate, clientConfigTemplate, peerConfigTemplate };
