@@ -183,6 +183,7 @@ export default function AppShell({ children }) {
             <ConfigProvider theme={themeConfig}>
                 <Layout style={{ minHeight: '100vh' }}>
                     <Sider
+                        className="wg-sider"
                         width={280}
                         collapsible={false}
                         collapsed={collapsed}
