@@ -1,6 +1,6 @@
 import localFont from 'next/font/local';
-// import './globals.css';
 import 'antd/dist/reset.css';
+import './globals.css';
 
 import AppShell from './AppShell.jsx';
 

@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { PieChartOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, theme, Switch } from 'antd';
+import { ConfigProvider, Layout, Menu, Switch } from 'antd';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { AppContext } from './AppContext.jsx';
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Language } from './intl';
+import { themeConfig } from './theme';
 import { apiRequest } from './util/api.js';
 
 const { Content, Footer, Sider } = Layout;
@@ -141,17 +142,17 @@ export default function AppShell({ children }) {
         {
             key: 'instances',
             icon: <UserOutlined />,
-            label: intl['vpn_instances'],
+            label: <span style={{ fontWeight: 700 }}>{intl['vpn_instances']}</span>,
             children: instances.map((instance) => ({
                 key: `/instance/${instance.id}`,
-                label: <Link href={`/instance/${instance.id}`}>{instance.container_name}</Link>,
+                label: (
+                    <Link href={`/instance/${instance.id}`} style={{ fontWeight: 600 }}>
+                        {instance.container_name}
+                    </Link>
+                ),
             })),
         },
     ];
-
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
 
     const onLanguageChange = (checked) => {
         const next = checked ? Language.ZH : Language.EN;
@@ -179,41 +180,52 @@ export default function AppShell({ children }) {
                 createInstance,
             }}
         >
-            <Layout style={{ minHeight: '100vh' }}>
-                <Sider collapsible={false} collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                    <Menu
-                        theme="dark"
-                        mode="inline"
-                        selectedKeys={[pathname]}
-                        defaultOpenKeys={['instances']}
-                        items={items}
-                    />
-                    <Switch
-                        style={{ marginLeft: '1rem', marginTop: '2rem' }}
-                        checkedChildren={'中文'}
-                        unCheckedChildren={'En'}
-                        checked={language === Language.ZH}
-                        onChange={onLanguageChange}
-                    />
-                </Sider>
-                <Layout>
-                    <Content style={{ margin: '0 5rem' }}>
-                        <div
+            <ConfigProvider theme={themeConfig}>
+                <Layout style={{ minHeight: '100vh' }}>
+                    <Sider
+                        width={280}
+                        collapsible={false}
+                        collapsed={collapsed}
+                        onCollapse={(value) => setCollapsed(value)}
+                        style={{ background: 'var(--wg-yellow)', borderRight: '2px solid var(--wg-ink)' }}
+                    >
+                        <div className="wg-brand">
+                            <div className="wg-brand-logo">W</div>
+                            {!collapsed && <span className="wg-brand-name">WireGuard</span>}
+                        </div>
+                        <Menu
+                            mode="inline"
+                            selectedKeys={[pathname]}
+                            defaultOpenKeys={['instances']}
+                            items={items}
+                            style={{ background: 'transparent', border: 'none' }}
+                        />
+                        <div style={{ padding: '0 16px', marginTop: '24px' }}>
+                            <Switch
+                                checkedChildren="中文"
+                                unCheckedChildren="En"
+                                checked={language === Language.ZH}
+                                onChange={onLanguageChange}
+                            />
+                        </div>
+                    </Sider>
+                    <Layout>
+                        <Content style={{ margin: '24px' }}>
+                            <div className="wg-panel">{children}</div>
+                        </Content>
+                        <Footer
                             style={{
-                                padding: 24,
-                                background: colorBgContainer,
-                                borderRadius: borderRadiusLG,
-                                minHeight: 360,
+                                textAlign: 'center',
+                                color: 'var(--wg-muted)',
+                                padding: '12px 24px',
+                                background: 'transparent',
                             }}
                         >
-                            {children}
-                        </div>
-                    </Content>
-                    <Footer style={{ textAlign: 'center' }}>
-                        Ant Design ©{new Date().getFullYear()} Created by Ant UED
-                    </Footer>
+                            WireGuard GUI
+                        </Footer>
+                    </Layout>
                 </Layout>
-            </Layout>
+            </ConfigProvider>
         </AppContext.Provider>
     );
 }

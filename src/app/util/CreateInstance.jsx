@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { isValidIpv4, isValidServerCidr } from './ip.js';
 import { isValidInstanceName } from './name.js';
 import { useApp } from '../AppContext.jsx';
@@ -27,7 +28,7 @@ export default function CreateInstance({ intl }) {
 
     return (
         <>
-            <Button type="primary" onClick={() => setOpen(true)}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>
                 {intl['create_new_instance']}
             </Button>
             <Modal title={intl['create_new_instance']} open={open} onCancel={() => setOpen(false)} footer={null}>

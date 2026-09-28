@@ -26,12 +26,16 @@ export default function Instance({ intl, instance }) {
 
     return (
         <>
-            <p>{`${intl['server_ip']}: ${instance.server_address}`}</p>
-            <p>{`${intl['last_counter_reset']}: `}</p>
-            {error && <p style={{ color: '#ff4d4f' }}>{error}</p>}
+            <div className="wg-page-header">
+                <h1 className="wg-page-title">{instance.container_name}</h1>
+                <span className="wg-tag">
+                    {intl['server_ip']}: {instance.server_address}
+                </span>
+            </div>
+            {error && <p style={{ color: 'var(--wg-ink)' }}>{error}</p>}
             <AddUserTable instanceId={instance.id} subnet={instance.server_address} intl={intl} />
             {loading && <Spin style={{ marginTop: '1rem', display: 'block' }} />}
-            <Row gutter={[10, 10]} style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap' }}>
+            <Row gutter={[16, 16]} style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap' }}>
                 {(clients || []).map((client) => (
                     <Col key={client.id}>
                         <ClientCard client={client} intl={intl} />

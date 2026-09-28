@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
+import { UserAddOutlined } from '@ant-design/icons';
 import { isIpInSubnet, parseCidr } from './ip.js';
 import { isValidDescription } from './name.js';
 import { useApp } from '../AppContext.jsx';
@@ -27,7 +28,7 @@ export default function AddUserTable({ instanceId, subnet, intl }) {
 
     return (
         <div>
-            <Button type="primary" onClick={() => setOpen(true)}>
+            <Button type="primary" icon={<UserAddOutlined />} onClick={() => setOpen(true)}>
                 {intl['add_user'] || 'Add Client'}
             </Button>
             <Modal title={intl['add_user'] || 'Add Client'} open={open} onCancel={() => setOpen(false)} footer={null}>
