@@ -35,6 +35,8 @@ export const CN_ZH = {
     delete: '删除',
     confirm_delete: '删除此客户端？',
     cancel: '取消',
+    edit: '编辑',
+    save: '保存',
 };
 
 export const EN_GB = {
@@ -74,4 +76,6 @@ export const EN_GB = {
     delete: 'Delete',
     confirm_delete: 'Delete this client?',
     cancel: 'Cancel',
+    edit: 'Edit',
+    save: 'Save',
 };

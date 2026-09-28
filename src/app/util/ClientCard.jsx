@@ -1,13 +1,17 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Collapse, Image, Popconfirm, message } from 'antd';
-import { DeleteOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { Button, Card, Collapse, Form, Image, Input, Modal, Popconfirm, message } from 'antd';
+import { DeleteOutlined, EditOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { isValidDescription } from './name.js';
 
 const ACTION_WIDTH = 80;
 
-export default function ClientCard({ client, intl, onDeleted }) {
+export default function ClientCard({ client, intl, onChanged }) {
     const [offset, setOffset] = useState(0);
     const [showQr, setShowQr] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [form] = Form.useForm();
     const startX = useRef(null);
     const startOffset = useRef(0);
     const dragging = useRef(false);
@@ -48,16 +52,44 @@ export default function ClientCard({ client, intl, onDeleted }) {
             const response = await fetch(`/api/clients/${client.id}`, { method: 'DELETE' });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) {
-                onDeleted();
+                onChanged();
                 throw new Error(payload.error || 'Failed to delete client');
             }
             message.success('Client deleted');
-            onDeleted();
+            onChanged();
         } catch (error) {
             console.error('Error deleting client:', error);
             message.error(error.message);
         } finally {
             setDeleting(false);
+        }
+    };
+
+    const openEdit = () => {
+        form.setFieldsValue({ description: client.description });
+        setEditOpen(true);
+    };
+
+    const handleUpdate = async (values) => {
+        setSaving(true);
+        try {
+            const response = await fetch(`/api/clients/${client.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: values.description }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload.error || 'Failed to update client');
+            }
+            message.success('Client updated');
+            setEditOpen(false);
+            onChanged();
+        } catch (error) {
+            console.error('Error updating client:', error);
+            message.error(error.message);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -130,6 +162,7 @@ export default function ClientCard({ client, intl, onDeleted }) {
                     <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '16px' }}>
                         <FileTextOutlined style={{ cursor: 'pointer' }} onClick={downloadConfig} />
                         <QrcodeOutlined style={{ cursor: 'pointer' }} onClick={() => setShowQr((v) => !v)} />
+                        <EditOutlined style={{ cursor: 'pointer' }} onClick={openEdit} />
                         <MailOutlined style={{ cursor: 'pointer' }} />
                     </div>
                     {showQr && (
@@ -139,6 +172,35 @@ export default function ClientCard({ client, intl, onDeleted }) {
                     )}
                 </Card>
             </div>
+            <Modal title={intl['edit'] || 'Edit'} open={editOpen} onCancel={() => setEditOpen(false)} footer={null}>
+                <Form form={form} onFinish={handleUpdate} layout="vertical">
+                    <Form.Item
+                        label={intl['description'] || 'Description'}
+                        name="description"
+                        rules={[
+                            { required: true, message: 'Please input the description!' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+                                    if (!isValidDescription(value)) {
+                                        return Promise.reject(
+                                            new Error('Letters, digits, spaces and ._- only (e.g. Alice)')
+                                        );
+                                    }
+                                    return Promise.resolve();
+                                },
+                            },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" loading={saving}>
+                            {intl['save'] || 'Save'}
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 }

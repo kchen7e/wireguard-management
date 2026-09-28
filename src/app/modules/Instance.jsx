@@ -52,7 +52,7 @@ export default function Instance({ intl, instance }) {
             <Row gutter={[10, 10]} style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap' }}>
                 {clients.map((client) => (
                     <Col key={client.id}>
-                        <ClientCard client={client} intl={intl} onDeleted={fetchClients} />
+                        <ClientCard client={client} intl={intl} onChanged={fetchClients} />
                     </Col>
                 ))}
             </Row>
