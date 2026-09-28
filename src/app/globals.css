@@ -99,6 +99,25 @@ body {
     color: var(--wg-teal);
 }
 
+.wg-sider-footer {
+    padding: 16px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.wg-dragon {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    border: 2px solid var(--wg-ink);
+    box-shadow: 4px 4px 0 var(--wg-ink-soft);
+    background: #fff;
+}
+
 /* Client card */
 .wg-card {
     background: #fff;

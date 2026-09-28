@@ -133,6 +133,8 @@ export default function ClientCard({ client, intl }) {
                         onConfirm={handleDelete}
                         okText={intl['delete'] || 'Delete'}
                         cancelText={intl['cancel'] || 'Cancel'}
+                        okButtonProps={{ danger: true, type: 'default' }}
+                        cancelButtonProps={{ type: 'primary' }}
                     >
                         <button type="button" className="wg-icon-btn danger" title={intl['delete'] || 'Delete'}>
                             <DeleteOutlined />
