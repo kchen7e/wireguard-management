@@ -54,11 +54,11 @@ export default function CreateInstance({ intl }) {
                         <Input placeholder="wireguard-1" />
                     </Form.Item>
                     <Form.Item
-                        label={intl['server_ip']}
-                        name="serverAddress"
+                        label={intl['server_vpn_ip']}
+                        name="serverVpnIp"
                         initialValue="172.28.15.0/24"
                         rules={[
-                            { required: true, message: 'Please input the server IP!' },
+                            { required: true, message: 'Please input the server VPN IP!' },
                             {
                                 validator: (_, value) => {
                                     if (!value) return Promise.resolve();

@@ -103,7 +103,7 @@ export default function AppShell({ children }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 container_name: values.containerName,
-                server_address: values.serverAddress,
+                server_vpn_ip: values.serverVpnIp,
                 server_endpoint: values.serverEndpoint,
                 server_listen_port: values.serverListenPort,
                 load_balancer_ip: values.loadBalancerIp || null,
@@ -187,7 +187,15 @@ export default function AppShell({ children }) {
                         collapsible={false}
                         collapsed={collapsed}
                         onCollapse={(value) => setCollapsed(value)}
-                        style={{ background: 'var(--wg-yellow)', borderRight: '2px solid var(--wg-ink)' }}
+                        style={{
+                            background: 'var(--wg-yellow)',
+                            borderRight: '2px solid var(--wg-ink)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: '100vh',
+                            position: 'sticky',
+                            top: 0,
+                        }}
                     >
                         <div className="wg-brand">
                             <div className="wg-brand-logo">W</div>
@@ -198,15 +206,16 @@ export default function AppShell({ children }) {
                             selectedKeys={[pathname]}
                             defaultOpenKeys={['instances']}
                             items={items}
-                            style={{ background: 'transparent', border: 'none' }}
+                            style={{ background: 'transparent', border: 'none', flex: 1, overflow: 'auto' }}
                         />
-                        <div style={{ padding: '0 16px', marginTop: '24px' }}>
+                        <div className="wg-sider-footer">
                             <Switch
                                 checkedChildren="中文"
                                 unCheckedChildren="En"
                                 checked={language === Language.ZH}
                                 onChange={onLanguageChange}
                             />
+                            <img src="/dragon.webp" alt="WireGuard dragon" className="wg-dragon" width={240} height={135} />
                         </div>
                     </Sider>
                     <Layout>

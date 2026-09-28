@@ -26,7 +26,7 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
     const { id } = await params;
     try {
-        const instanceResult = await query('SELECT id, server_address FROM instances WHERE id = $1', [id]);
+        const instanceResult = await query('SELECT id, server_vpn_ip FROM instances WHERE id = $1', [id]);
         if (instanceResult.rowCount === 0) {
             return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
         }
@@ -54,9 +54,9 @@ export async function POST(request, { params }) {
             );
         }
 
-        if (!isIpInSubnet(clientAddress.ip, instance.server_address)) {
+        if (!isIpInSubnet(clientAddress.ip, instance.server_vpn_ip)) {
             return NextResponse.json(
-                { error: `Client IP must be within the server subnet ${instance.server_address}` },
+                { error: `Client IP must be within the server subnet ${instance.server_vpn_ip}` },
                 { status: 400 }
             );
         }

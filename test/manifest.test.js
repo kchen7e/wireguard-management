@@ -7,7 +7,7 @@ const instance = {
     interface_name: 'wg0',
     server_private_key: 'server-priv',
     server_public_key: 'server-pub',
-    server_address: '10.13.13.1/24',
+    server_vpn_ip: '10.13.13.1/24',
     server_endpoint: 'wg.example.com',
     server_listen_port: 60000,
     dns: null,

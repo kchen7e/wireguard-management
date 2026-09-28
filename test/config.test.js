@@ -4,7 +4,7 @@ import { buildClientConfig, buildServerConfig } from '../src/app/api/lib/config.
 const instance = {
     server_private_key: 'server-private',
     server_public_key: 'server-public',
-    server_address: '10.13.13.1/24',
+    server_vpn_ip: '10.13.13.1/24',
     server_endpoint: 'vpn.example.com',
     server_listen_port: 51820,
     dns: '1.1.1.1',

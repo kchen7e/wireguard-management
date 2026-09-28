@@ -24,10 +24,10 @@ export function buildClientConfig(client, instance) {
 }
 
 export function buildServerConfig(instance, clients) {
-    const subnet = networkCidr(instance.server_address);
+    const subnet = networkCidr(instance.server_vpn_ip);
     const interfaceLines = [
         '[Interface]',
-        `Address = ${serverHostAddress(instance.server_address)}`,
+        `Address = ${serverHostAddress(instance.server_vpn_ip)}`,
         `ListenPort = ${instance.server_listen_port}`,
         `PrivateKey = ${instance.server_private_key}`,
     ];

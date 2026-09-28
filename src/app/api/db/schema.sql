@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS instances (
     interface_name TEXT NOT NULL DEFAULT 'wg0',
     server_private_key TEXT NOT NULL,
     server_public_key TEXT NOT NULL,
-    server_address TEXT NOT NULL,
+    server_vpn_ip TEXT NOT NULL,
     server_endpoint TEXT NOT NULL,
     server_listen_port INTEGER NOT NULL DEFAULT 51820,
     dns TEXT,

@@ -27,7 +27,7 @@ async function ensureSchemaUnsafe() {
             interface_name TEXT NOT NULL DEFAULT 'wg0',
             server_private_key TEXT NOT NULL,
             server_public_key TEXT NOT NULL,
-            server_address TEXT NOT NULL,
+            server_vpn_ip TEXT NOT NULL,
             server_endpoint TEXT NOT NULL,
             server_listen_port INTEGER NOT NULL DEFAULT 51820,
             dns TEXT,
@@ -39,6 +39,17 @@ async function ensureSchemaUnsafe() {
 
     try {
         await activePool.query(`ALTER TABLE instances ADD COLUMN IF NOT EXISTS load_balancer_ip TEXT`);
+    } catch (error) {
+        console.warn(`Skipping migration (${error.message})`);
+    }
+
+    try {
+        const legacyColumn = await activePool.query(
+            `SELECT 1 FROM information_schema.columns WHERE table_name = 'instances' AND column_name = 'server_address'`
+        );
+        if (legacyColumn.rowCount > 0) {
+            await activePool.query(`ALTER TABLE instances RENAME COLUMN server_address TO server_vpn_ip`);
+        }
     } catch (error) {
         console.warn(`Skipping migration (${error.message})`);
     }

@@ -6,7 +6,7 @@ const SAFE_INSTANCE_FIELDS = `
     container_name,
     interface_name,
     server_public_key,
-    server_address,
+    server_vpn_ip,
     server_endpoint,
     server_listen_port,
     dns,

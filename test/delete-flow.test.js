@@ -23,7 +23,7 @@ const instance = {
     interface_name: 'wg0',
     server_private_key: 'server-priv',
     server_public_key: 'server-pub',
-    server_address: '172.28.15.0/24',
+    server_vpn_ip: '172.28.15.0/24',
     server_endpoint: 'wg.storm7e.de',
     server_listen_port: 51820,
     dns: null,

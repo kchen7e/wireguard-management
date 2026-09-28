@@ -21,7 +21,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             container_name,
-            server_address,
+            server_vpn_ip,
             server_endpoint,
             server_listen_port,
             load_balancer_ip,
@@ -29,7 +29,7 @@ export async function POST(request) {
             interface_name = 'wg0',
         } = body;
 
-        if (!container_name || !server_address || !server_endpoint) {
+        if (!container_name || !server_vpn_ip || !server_endpoint) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -40,9 +40,9 @@ export async function POST(request) {
             );
         }
 
-        if (!isValidServerCidr(server_address)) {
+        if (!isValidServerCidr(server_vpn_ip)) {
             return NextResponse.json(
-                { error: 'Server IP must be a private network CIDR between /24 and /30 (e.g. 172.28.15.0/24)' },
+                { error: 'Server VPN IP must be a private network CIDR between /24 and /30 (e.g. 172.28.15.0/24)' },
                 { status: 400 }
             );
         }
@@ -72,15 +72,15 @@ export async function POST(request) {
         const { publicKey, privateKey } = generateKeyPair();
 
         const result = await query(
-            `INSERT INTO instances (container_name, interface_name, server_private_key, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip)
+            `INSERT INTO instances (container_name, interface_name, server_private_key, server_public_key, server_vpn_ip, server_endpoint, server_listen_port, dns, load_balancer_ip)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-             RETURNING id, container_name, interface_name, server_public_key, server_address, server_endpoint, server_listen_port, dns, load_balancer_ip`,
+             RETURNING id, container_name, interface_name, server_public_key, server_vpn_ip, server_endpoint, server_listen_port, dns, load_balancer_ip`,
             [
                 container_name,
                 interface_name,
                 privateKey,
                 publicKey,
-                server_address,
+                server_vpn_ip,
                 server_endpoint,
                 listenPort,
                 dns || null,
