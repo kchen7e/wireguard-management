@@ -105,8 +105,6 @@ export default function AppShell({ children }) {
                 container_name: values.containerName,
                 server_vpn_ip: values.serverVpnIp,
                 server_endpoint: values.serverEndpoint,
-                server_listen_port: values.serverListenPort,
-                load_balancer_ip: values.loadBalancerIp || null,
                 dns: values.dns || null,
             }),
         });

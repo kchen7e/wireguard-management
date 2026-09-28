@@ -1,15 +1,35 @@
-import { useState } from 'react';
-import { Button, Modal, Form, Input, InputNumber, message } from 'antd';
+import { useEffect, useState } from 'react';
+import { Button, Modal, Form, Input, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { isValidIpv4, isValidServerCidr } from './ip.js';
+import { isValidServerCidr } from './ip.js';
 import { isValidInstanceName } from './name.js';
 import { useApp } from '../AppContext.jsx';
+import { apiRequest } from './api.js';
 
 export default function CreateInstance({ intl }) {
     const { createInstance } = useApp();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [lbMode, setLbMode] = useState(null);
+    const [nextLbIp, setNextLbIp] = useState(null);
     const [form] = Form.useForm();
+
+    useEffect(() => {
+        if (!open) return;
+        let cancelled = false;
+        apiRequest('/api/instances/lb-pool')
+            .then((payload) => {
+                if (cancelled) return;
+                setLbMode(payload.data.mode);
+                setNextLbIp(payload.data.next_load_balancer_ip);
+            })
+            .catch((error) => {
+                if (!cancelled) console.error('Error resolving load balancer pool:', error);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [open]);
 
     const handleCreate = async (values) => {
         setLoading(true);
@@ -84,31 +104,11 @@ export default function CreateInstance({ intl }) {
                     >
                         <Input placeholder="wg.storm7e.de" />
                     </Form.Item>
-                    <Form.Item
-                        label={intl['server_listen_port']}
-                        name="serverListenPort"
-                        extra="Leave blank to auto-assign a unique port"
-                    >
-                        <InputNumber min={1} max={65535} style={{ width: '100%' }} placeholder="auto" />
-                    </Form.Item>
-                    <Form.Item
-                        label={intl['load_balancer_ip']}
-                        name="loadBalancerIp"
-                        extra="Leave blank to auto-assign from the MetalLB pool"
-                        rules={[
-                            {
-                                validator: (_, value) => {
-                                    if (!value) return Promise.resolve();
-                                    if (!isValidIpv4(value)) {
-                                        return Promise.reject(new Error('Must be a valid IPv4 address'));
-                                    }
-                                    return Promise.resolve();
-                                },
-                            },
-                        ]}
-                    >
-                        <Input placeholder="192.168.249.201" />
-                    </Form.Item>
+                    {lbMode === 'dedicated' && nextLbIp && (
+                        <Form.Item label={intl['load_balancer_ip']} extra={intl['load_balancer_ip_auto']}>
+                            <Input value={nextLbIp} disabled />
+                        </Form.Item>
+                    )}
                     <Form.Item label={intl['dns']} name="dns">
                         <Input placeholder="1.1.1.1" />
                     </Form.Item>

@@ -60,10 +60,8 @@ describe('buildInstanceManifest', () => {
         expect(yaml).not.toContain('loadBalancerIPs');
     });
 
-    it('shares a single IP across services in shared mode', () => {
-        const originalMode = process.env.LB_MODE;
+    it('shares a single IP across services when a shared IP is configured', () => {
         const originalIp = process.env.SHARED_LOAD_BALANCER_IP;
-        process.env.LB_MODE = 'shared';
         process.env.SHARED_LOAD_BALANCER_IP = '203.0.113.10';
         try {
             const yaml = buildInstanceManifest({ ...instance, load_balancer_ip: '10.0.0.9' }, clients);
@@ -71,19 +69,19 @@ describe('buildInstanceManifest', () => {
             expect(yaml).toContain('metallb.io/allow-shared-ip: 203.0.113.10');
             expect(yaml).not.toContain('10.0.0.9');
         } finally {
-            restoreEnv('LB_MODE', originalMode);
             restoreEnv('SHARED_LOAD_BALANCER_IP', originalIp);
         }
     });
 
-    it('fails when shared mode is enabled without a shared IP', () => {
-        const originalMode = process.env.LB_MODE;
-        process.env.LB_MODE = 'shared';
+    it('falls back to dedicated mode when no shared IP is configured', () => {
+        const originalIp = process.env.SHARED_LOAD_BALANCER_IP;
         delete process.env.SHARED_LOAD_BALANCER_IP;
         try {
-            expect(() => buildInstanceManifest(instance, clients)).toThrow('SHARED_LOAD_BALANCER_IP');
+            const yaml = buildInstanceManifest({ ...instance, load_balancer_ip: '10.0.0.9' }, clients);
+            expect(yaml).toContain('metallb.io/loadBalancerIPs: 10.0.0.9');
+            expect(yaml).not.toContain('allow-shared-ip');
         } finally {
-            restoreEnv('LB_MODE', originalMode);
+            restoreEnv('SHARED_LOAD_BALANCER_IP', originalIp);
         }
     });
 });

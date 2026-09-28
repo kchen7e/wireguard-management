@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { isValidIpv4 } from '../../util/ip.js';
 
 const TEMPLATES_DIR = path.join(process.cwd(), 'src', 'app', 'api', 'lib', 'templates');
 
@@ -54,7 +55,7 @@ const dedicatedServiceTemplate = (data) => renderTemplate(TEMPLATES['service-ded
 const sharedServiceTemplate = (data) => {
     const sharedIp = process.env[SHARED_LB_IP_ENV] || '';
     if (!sharedIp) {
-        throw new Error(`LB_MODE is "shared" but ${SHARED_LB_IP_ENV} is not set`);
+        throw new Error(`${SHARED_LB_IP_ENV} is not set`);
     }
     return renderTemplate(TEMPLATES['service-shared'], { ...data, load_balancer_ip: sharedIp });
 };
@@ -65,7 +66,8 @@ const SERVICE_TEMPLATES = {
 };
 
 export function lbMode() {
-    return process.env.LB_MODE || 'dedicated';
+    const sharedIp = process.env[SHARED_LB_IP_ENV];
+    return sharedIp && isValidIpv4(sharedIp) ? 'shared' : 'dedicated';
 }
 
 export function serviceTemplateFactory() {

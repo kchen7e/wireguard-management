@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { query } from '../db.js';
 import { generateKeyPair } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
-import { isValidServerCidr, isValidIpv4 } from '../../util/ip.js';
+import { isValidServerCidr } from '../../util/ip.js';
 import { isValidInstanceName } from '../../util/name.js';
 import { lbMode } from '../lib/templates.js';
+import { nextAvailableLoadBalancerIp } from '../lib/lb-pool.js';
 
 export async function GET() {
     try {
@@ -19,15 +20,7 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const {
-            container_name,
-            server_vpn_ip,
-            server_endpoint,
-            server_listen_port,
-            load_balancer_ip,
-            dns,
-            interface_name = 'wg0',
-        } = body;
+        const { container_name, server_vpn_ip, server_endpoint, dns, interface_name = 'wg0' } = body;
 
         if (!container_name || !server_vpn_ip || !server_endpoint) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -47,27 +40,15 @@ export async function POST(request) {
             );
         }
 
-        if (load_balancer_ip && !isValidIpv4(load_balancer_ip)) {
-            return NextResponse.json({ error: 'Reserved IP must be a valid IPv4 address' }, { status: 400 });
-        }
-
         const shared = lbMode() === 'shared';
 
-        if (!shared && load_balancer_ip) {
-            const existing = await query('SELECT id FROM instances WHERE load_balancer_ip = $1', [load_balancer_ip]);
-            if (existing.rowCount > 0) {
-                return NextResponse.json({ error: `IP ${load_balancer_ip} is already reserved` }, { status: 409 });
-            }
-        }
+        const listenPort = await nextAvailablePort();
 
-        if (shared && server_listen_port) {
-            const clash = await query('SELECT id FROM instances WHERE server_listen_port = $1', [server_listen_port]);
-            if (clash.rowCount > 0) {
-                return NextResponse.json({ error: `Port ${server_listen_port} is already in use` }, { status: 409 });
-            }
+        let loadBalancerIp = null;
+        if (!shared) {
+            const reserved = await query('SELECT load_balancer_ip FROM instances WHERE load_balancer_ip IS NOT NULL');
+            loadBalancerIp = nextAvailableLoadBalancerIp(reserved.rows.map((row) => row.load_balancer_ip));
         }
-
-        const listenPort = server_listen_port || (await nextAvailablePort());
 
         const { publicKey, privateKey } = generateKeyPair();
 
@@ -84,7 +65,7 @@ export async function POST(request) {
                 server_endpoint,
                 listenPort,
                 dns || null,
-                load_balancer_ip || null,
+                loadBalancerIp,
             ]
         );
 

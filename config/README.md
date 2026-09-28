@@ -63,15 +63,16 @@ instead of `<pending>`.
 
 Manifests are rendered from Jinja2-style templates in
 `src/app/api/lib/templates/*.tpl` (`{{ var }}` and `{% if %}` blocks). The
-Service template is chosen by the `LB_MODE` env var, via `lbMode()` /
-`serviceTemplateFactory()` in `src/app/api/lib/templates.js`.
+Service template is chosen by `lbMode()` / `serviceTemplateFactory()` in
+`src/app/api/lib/templates.js`: shared mode is enabled implicitly when
+`SHARED_LOAD_BALANCER_IP` is set to a valid IPv4 address.
 
 - `dedicated` (default): each instance gets its own MetalLB IP.
 - `shared`: all instances share one IP (from `SHARED_LOAD_BALANCER_IP`) and are
   distinguished by UDP port.
 
-To switch, set `LB_MODE=shared` and `SHARED_LOAD_BALANCER_IP=<ip>` in the
-environment (e.g. `.env`) and reconcile.
+To switch, set `SHARED_LOAD_BALANCER_IP=<ip>` in the environment (e.g. `.env`)
+and reconcile; remove it to return to dedicated mode.
 
 ### dedicated (default)
 
@@ -99,8 +100,8 @@ metadata:
         metallb.io/allow-shared-ip: <shared IP>
 ```
 
-If `SHARED_LOAD_BALANCER_IP` is not set while `LB_MODE=shared`, manifest
-generation fails with an error rather than silently misconfiguring the Services.
+If `SHARED_LOAD_BALANCER_IP` is unset or not a valid IPv4 address, dedicated
+mode is used.
 
 Notes:
 
