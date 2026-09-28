@@ -79,3 +79,12 @@ export const EN_GB = {
     edit: 'Edit',
     save: 'Save',
 };
+
+export const Language = Object.freeze({
+    EN: Object.freeze({ key: 'en', messages: EN_GB }),
+    ZH: Object.freeze({ key: 'zh', messages: CN_ZH }),
+});
+
+export const DEFAULT_LANGUAGE = Language.EN;
+
+export const LANGUAGE_STORAGE_KEY = 'wg-gui-language';

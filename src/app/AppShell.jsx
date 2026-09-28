@@ -7,18 +7,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { AppContext } from './AppContext.jsx';
-import { CN_ZH, EN_GB } from './intl';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Language } from './intl';
 import { apiRequest } from './util/api.js';
 
 const { Content, Footer, Sider } = Layout;
 
 export default function AppShell({ children }) {
     const [collapsed, setCollapsed] = useState(false);
-    const [intl, setIntl] = useState(EN_GB);
+    const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
     const [instances, setInstances] = useState([]);
     const [instancesById, setInstancesById] = useState({});
     const [clientsByInstance, setClientsByInstance] = useState({});
     const pathname = usePathname();
+
+    const intl = language.messages;
 
     const refreshInstances = useCallback(async () => {
         try {
@@ -117,6 +119,19 @@ export default function AppShell({ children }) {
         refreshInstances();
     }, [refreshInstances]);
 
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+            if (saved === Language.ZH.key) {
+                setLanguage(Language.ZH);
+            } else if (saved === Language.EN.key) {
+                setLanguage(Language.EN);
+            }
+        } catch (error) {
+            // localStorage unavailable; keep the default language.
+        }
+    }, []);
+
     const items = [
         {
             key: '/',
@@ -139,7 +154,13 @@ export default function AppShell({ children }) {
     } = theme.useToken();
 
     const onLanguageChange = (checked) => {
-        setIntl(checked ? CN_ZH : EN_GB);
+        const next = checked ? Language.ZH : Language.EN;
+        setLanguage(next);
+        try {
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, next.key);
+        } catch (error) {
+            // localStorage unavailable; ignore.
+        }
     };
 
     return (
@@ -171,7 +192,8 @@ export default function AppShell({ children }) {
                         style={{ marginLeft: '1rem', marginTop: '2rem' }}
                         checkedChildren={'中文'}
                         unCheckedChildren={'En'}
-                        onClick={onLanguageChange}
+                        checked={language === Language.ZH}
+                        onChange={onLanguageChange}
                     />
                 </Sider>
                 <Layout>
