@@ -31,7 +31,7 @@ COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src/app/api/lib/templates ./src/app/api/lib/templates
+COPY src/app/api/lib/templates ./src/app/api/lib/templates
 
 RUN mkdir -p /etc/wireguard /app/config \
     && chown -R node:node /app /etc/wireguard
