@@ -131,6 +131,11 @@ export default function AppShell({ children }) {
         }
     }, []);
 
+    useEffect(() => {
+        document.title = language.messages.wireguard_gui;
+        document.documentElement.lang = language.key === Language.ZH.key ? 'zh-CN' : 'en-GB';
+    }, [language]);
+
     const items = [
         {
             key: '/',
@@ -214,7 +219,13 @@ export default function AppShell({ children }) {
                                 checked={language === Language.ZH}
                                 onChange={onLanguageChange}
                             />
-                            <img src="/dragon.webp" alt="WireGuard dragon" className="wg-dragon" width={240} height={135} />
+                            <img
+                                src="/dragon.webp"
+                                alt="WireGuard dragon"
+                                className="wg-dragon"
+                                width={240}
+                                height={135}
+                            />
                         </div>
                     </Sider>
                     <Layout>
@@ -229,7 +240,7 @@ export default function AppShell({ children }) {
                                 background: 'transparent',
                             }}
                         >
-                            WireGuard GUI
+                            WireGuard Management
                         </Footer>
                     </Layout>
                 </Layout>

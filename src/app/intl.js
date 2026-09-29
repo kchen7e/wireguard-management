@@ -42,7 +42,7 @@ export const CN_ZH = {
 };
 
 export const EN_GB = {
-    wireguard_gui: 'Wireguard GUI',
+    wireguard_gui: 'Wireguard Management',
     users_registered: 'All Users on Interface wg0',
     ip: 'IP',
     allowed_source: 'Allowed Source',

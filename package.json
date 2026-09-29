@@ -1,5 +1,5 @@
 {
-    "name": "wg-gui",
+    "name": "wireguard-management",
     "version": "1.0.0",
     "private": true,
     "scripts": {
@@ -12,14 +12,14 @@
     },
     "dependencies": {
         "@ant-design/icons": "^6.3.4",
-        "antd": "^6.6.4",
-        "next": "15.0.4",
-        "pg": "^8.13.1",
-        "prettier": "^3.4.2",
+        "antd": "^6.6.5",
+        "next": "16.3.6",
+        "pg": "^8.23.0",
+        "prettier": "^3.9.9",
         "qrcode": "^1.5.4",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "ssh2": "^1.16.0",
-        "vitest": "^2.1.8"
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "ssh2": "^1.17.0",
+        "vitest": "^5.0.2"
     }
 }
