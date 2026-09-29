@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '../db.js';
-import { generateKeyPair } from '../lib/instance.js';
+import { generateKeyPair, SAFE_INSTANCE_FIELDS } from '../lib/instance.js';
 import { reconcileInstances } from '../lib/reconcile.js';
 import { isValidServerCidr } from '../../util/ip.js';
 import { isValidInstanceName } from '../../util/name.js';
@@ -9,7 +9,7 @@ import { nextAvailableLoadBalancerIp } from '../lib/lb-pool.js';
 
 export async function GET() {
     try {
-        const result = await query(`SELECT id, container_name FROM instances ORDER BY id`);
+        const result = await query(`SELECT ${SAFE_INSTANCE_FIELDS} FROM instances ORDER BY id`);
         return NextResponse.json({ data: result.rows });
     } catch (error) {
         console.error('Error fetching instances:', error);

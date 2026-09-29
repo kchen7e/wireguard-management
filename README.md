@@ -14,15 +14,15 @@ with `kubectl`.
 
 ## Configuration
 
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | yes | — | Postgres connection string |
-| `K8S_NAMESPACE` | no | `wireguard` | Kubernetes namespace |
-| `K8S_CONFIG_DIR` | no | `./config` | Directory where generated manifests are written |
-| `SHARED_LOAD_BALANCER_IP` | no | — | Enables shared load-balancer mode when set to a valid IPv4 |
-| `WG_IMAGE` | no | `docker.storm7e.de/wireguard-go:latest` | WireGuard container image |
-| `KUBECTL_BIN` | no | `kubectl` | kubectl binary to invoke |
-| `KUBECONFIG` | no | `~/.kube/config` | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
+| Variable                  | Required | Default                                 | Description                                                                 |
+| ------------------------- | -------- | --------------------------------------- | --------------------------------------------------------------------------- |
+| `DATABASE_URL`            | yes      | —                                       | Postgres connection string                                                  |
+| `K8S_NAMESPACE`           | no       | `wireguard`                             | Kubernetes namespace                                                        |
+| `K8S_CONFIG_DIR`          | no       | `./config`                              | Directory where generated manifests are written                             |
+| `SHARED_LOAD_BALANCER_IP` | no       | —                                       | Enables shared load-balancer mode when set to a valid IPv4                  |
+| `WG_IMAGE`                | no       | `docker.storm7e.de/wireguard-go:latest` | WireGuard container image                                                   |
+| `KUBECTL_BIN`             | no       | `kubectl`                               | kubectl binary to invoke                                                    |
+| `KUBECONFIG`              | no       | `~/.kube/config`                        | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
 
 ## Local development
 

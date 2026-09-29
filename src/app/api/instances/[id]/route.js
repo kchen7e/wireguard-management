@@ -1,18 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../db.js';
-
-const SAFE_INSTANCE_FIELDS = `
-    id,
-    container_name,
-    interface_name,
-    server_public_key,
-    server_vpn_ip,
-    server_endpoint,
-    server_listen_port,
-    dns,
-    created_at,
-    updated_at
-`;
+import { SAFE_INSTANCE_FIELDS } from '../../lib/instance.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;

@@ -26,7 +26,15 @@ export default function AppShell({ children }) {
     const refreshInstances = useCallback(async () => {
         try {
             const payload = await apiRequest('/api/instances');
-            setInstances(payload.data || []);
+            const list = payload.data || [];
+            setInstances(list);
+            setInstancesById((prev) => {
+                const next = { ...prev };
+                for (const instance of list) {
+                    next[instance.id] = instance;
+                }
+                return next;
+            });
         } catch (error) {
             console.error('Error fetching instances:', error);
             setInstances([]);

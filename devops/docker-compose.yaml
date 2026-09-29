@@ -1,33 +1,33 @@
 services:
-  wireguard-management:
-    image: docker.storm7e.de/wireguard-management:latest
-    platform: linux/amd64
-    container_name: wireguard-management
-    restart: unless-stopped
-    user: "${APP_UID:-1044}:${APP_GID:-100}"
-    env_file:
-      - ../.env
-    environment:
-      KUBECONFIG: /etc/wireguard/kubeconfig
-      K8S_CONFIG_DIR: /app/config
-      K8S_NAMESPACE: wireguard
-    ports:
-      - "3000:3000"
-    volumes:
-      - ../config:/app/config
-      - ${KUBECONFIG_PATH:-../kubeconfig}:/etc/wireguard/kubeconfig:ro
-    networks:
-      - wireguard_management_net
-      - db_net
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
+    wireguard-management:
+        image: docker.storm7e.de/wireguard-management:latest
+        platform: linux/amd64
+        container_name: wireguard-management
+        restart: unless-stopped
+        user: '${APP_UID:-1044}:${APP_GID:-100}'
+        env_file:
+            - ../.env
+        environment:
+            KUBECONFIG: /etc/wireguard/kubeconfig
+            K8S_CONFIG_DIR: /app/config
+            K8S_NAMESPACE: wireguard
+        ports:
+            - '3000:3000'
+        volumes:
+            - ../config:/app/config
+            - ${KUBECONFIG_PATH:-../kubeconfig}:/etc/wireguard/kubeconfig:ro
+        networks:
+            - wireguard_management_net
+            - db_net
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '5'
 
 networks:
-  wireguard_management_net:
-    driver: bridge
-    name: wireguard-management
-  db_net:
-    external: true
+    wireguard_management_net:
+        driver: bridge
+        name: wireguard-management
+    db_net:
+        external: true

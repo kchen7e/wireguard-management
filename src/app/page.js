@@ -1,10 +1,11 @@
 'use client';
 
 import CreateInstance from './util/CreateInstance.jsx';
+import InstanceCard from './util/InstanceCard.jsx';
 import { useApp } from './AppContext.jsx';
 
 export default function Home() {
-    const { intl } = useApp();
+    const { intl, instances } = useApp();
 
     return (
         <div>
@@ -13,6 +14,18 @@ export default function Home() {
             </div>
             <p style={{ color: 'var(--wg-muted)', marginTop: 0 }}>{intl['wireguard_gui']}</p>
             <CreateInstance intl={intl} />
+            {instances.length > 0 && (
+                <>
+                    <h2 className="wg-page-title" style={{ margin: '24px 0 16px' }}>
+                        {intl['vpn_instances']}
+                    </h2>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                        {instances.map((instance) => (
+                            <InstanceCard key={instance.id} instance={instance} intl={intl} />
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     );
 }

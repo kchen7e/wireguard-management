@@ -5,6 +5,20 @@ import { runKubectl } from './kubectl.js';
 import { buildInstanceManifest } from './manifest.js';
 import { instanceManifestFile, namespace } from './paths.js';
 
+export const SAFE_INSTANCE_FIELDS = `
+    id,
+    container_name,
+    interface_name,
+    server_public_key,
+    server_vpn_ip,
+    server_endpoint,
+    server_listen_port,
+    dns,
+    load_balancer_ip,
+    created_at,
+    updated_at
+`;
+
 export async function getInstanceById(id) {
     const result = await query(
         `SELECT id, container_name, interface_name, server_private_key, server_public_key, server_vpn_ip, server_endpoint, server_listen_port, dns, load_balancer_ip

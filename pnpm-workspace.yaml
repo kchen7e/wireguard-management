@@ -4,4 +4,4 @@ allowBuilds:
     sharp: false
     ssh2: false
 minimumReleaseAgeExclude:
-  - antd@6.6.4
+    - antd@6.6.4
