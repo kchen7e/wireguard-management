@@ -102,29 +102,17 @@ export default function ClientCard({ client, intl }) {
     const sent = formatBytes(sentRaw);
 
     return (
-        <div className="wg-card" style={{ position: 'relative', width: '26rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="wg-card" style={{ position: 'relative' }}>
+            <div className="wg-card-head">
                 <div className="wg-avatar">{initials}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span
-                            style={{
-                                fontWeight: 700,
-                                fontSize: '16px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            {client.description}
-                        </span>
+                <div className="wg-card-id">
+                    <div className="wg-card-title-row">
+                        <span className="wg-card-title">{client.description}</span>
                         <span className={`wg-status-dot ${status}`} title={intl['last_seen']} />
                     </div>
-                    <div style={{ color: 'var(--wg-muted)', fontSize: '12px', fontWeight: 500 }}>
-                        {client.client_ip}
-                    </div>
+                    <div className="wg-card-sub">{client.client_ip}</div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
                     <button type="button" className="wg-icon-btn" onClick={openEdit} title={intl['edit'] || 'Edit'}>
                         <EditOutlined />
                     </button>
@@ -185,18 +173,18 @@ export default function ClientCard({ client, intl }) {
 
             <div className="wg-actions">
                 <button type="button" className="wg-pill" onClick={downloadConfig}>
-                    <FileTextOutlined /> {intl['download_config'] || 'Config'}
+                    <FileTextOutlined /> <span className="wg-pill-label">{intl['download_config'] || 'Config'}</span>
                 </button>
                 <button type="button" className="wg-pill" onClick={() => setShowQr((v) => !v)}>
-                    <QrcodeOutlined /> {intl['show_qr'] || 'QR'}
+                    <QrcodeOutlined /> <span className="wg-pill-label">{intl['show_qr'] || 'QR'}</span>
                 </button>
                 <button type="button" className="wg-pill">
-                    <MailOutlined /> Email
+                    <MailOutlined /> <span className="wg-pill-label">Email</span>
                 </button>
             </div>
 
             {showQr && (
-                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                <div className="wg-card-qr">
                     <Image src={`/api/clients/${client.id}/qr`} alt="QR code" width={200} preview={false} />
                 </div>
             )}

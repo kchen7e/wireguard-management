@@ -14,6 +14,7 @@ html,
 body {
     margin: 0;
     padding: 0;
+    min-width: 320px;
     background: var(--wg-bg);
     color: var(--wg-teal);
     font-family:
@@ -37,7 +38,8 @@ body {
     border-radius: 20px;
     box-shadow: 4px 4px 0 var(--wg-ink-soft);
     padding: 28px;
-    min-height: 360px;
+    min-width: 0;
+    min-height: max(360px, 60vh);
 }
 
 /* Page header */
@@ -263,4 +265,111 @@ body {
 .wg-pill.primary {
     background: var(--wg-body);
     color: #fff;
+}
+
+/* Card grid */
+.wg-card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.wg-card-grid > * {
+    flex: 1 1 26rem;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Card header / identity */
+.wg-card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.wg-card-id {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.wg-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.wg-card-title {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--wg-teal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wg-card-sub {
+    margin-top: 6px;
+    min-width: 0;
+    color: var(--wg-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.wg-card-qr {
+    flex-basis: 100%;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* Narrow view: collapse cards to single-line rows */
+@media (max-width: 768px) {
+    .wg-card-grid > * {
+        flex-basis: 100%;
+    }
+
+    .wg-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .wg-card .wg-kv,
+    .wg-card .ant-collapse,
+    .wg-card-head .wg-card-sub,
+    .wg-card-head .wg-tag {
+        display: none;
+    }
+
+    .wg-card-head {
+        flex: 1 1 auto;
+    }
+
+    .wg-avatar {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+        font-size: 14px;
+    }
+
+    .wg-actions {
+        flex: 0 0 auto;
+        margin-top: 0;
+    }
+
+    .wg-pill-label {
+        display: none;
+    }
+
+    .wg-pill {
+        padding: 6px 10px;
+    }
+
+    .wg-panel {
+        padding: 18px;
+    }
 }

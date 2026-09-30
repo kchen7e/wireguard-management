@@ -13,13 +13,18 @@ import { apiRequest } from './util/api.js';
 
 const { Content, Footer, Sider } = Layout;
 
+const NARROW_BREAKPOINT = '(max-width: 768px)';
+
 export default function AppShell({ children }) {
     const [collapsed, setCollapsed] = useState(false);
+    const [narrow, setNarrow] = useState(false);
     const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
     const [instances, setInstances] = useState([]);
     const [instancesById, setInstancesById] = useState({});
     const [clientsByInstance, setClientsByInstance] = useState({});
     const pathname = usePathname();
+
+    const isCollapsed = collapsed || narrow;
 
     const intl = language.messages;
 
@@ -127,6 +132,14 @@ export default function AppShell({ children }) {
     }, [refreshInstances]);
 
     useEffect(() => {
+        const mq = window.matchMedia(NARROW_BREAKPOINT);
+        const update = () => setNarrow(mq.matches);
+        update();
+        mq.addEventListener('change', update);
+        return () => mq.removeEventListener('change', update);
+    }, []);
+
+    useEffect(() => {
         try {
             const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
             if (saved === Language.ZH.key) {
@@ -196,8 +209,9 @@ export default function AppShell({ children }) {
                     <Sider
                         className="wg-sider"
                         width={280}
+                        collapsedWidth={80}
                         collapsible={false}
-                        collapsed={collapsed}
+                        collapsed={isCollapsed}
                         onCollapse={(value) => setCollapsed(value)}
                         style={{
                             background: 'var(--wg-yellow)',
@@ -211,7 +225,7 @@ export default function AppShell({ children }) {
                     >
                         <div className="wg-brand">
                             <div className="wg-brand-logo">W</div>
-                            {!collapsed && <span className="wg-brand-name">WireGuard</span>}
+                            {!isCollapsed && <span className="wg-brand-name">WireGuard</span>}
                         </div>
                         <Menu
                             mode="inline"
@@ -222,18 +236,21 @@ export default function AppShell({ children }) {
                         />
                         <div className="wg-sider-footer">
                             <Switch
-                                checkedChildren="中文"
-                                unCheckedChildren="En"
+                                size={isCollapsed ? 'small' : 'medium'}
+                                checkedChildren={isCollapsed ? undefined : '中文'}
+                                unCheckedChildren={isCollapsed ? undefined : 'En'}
                                 checked={language === Language.ZH}
                                 onChange={onLanguageChange}
                             />
-                            <img
-                                src="/dragon.webp"
-                                alt="WireGuard dragon"
-                                className="wg-dragon"
-                                width={240}
-                                height={135}
-                            />
+                            {!isCollapsed && (
+                                <img
+                                    src="/dragon.webp"
+                                    alt="WireGuard dragon"
+                                    className="wg-dragon"
+                                    width={240}
+                                    height={135}
+                                />
+                            )}
                         </div>
                     </Sider>
                     <Layout>

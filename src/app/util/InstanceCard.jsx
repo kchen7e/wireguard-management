@@ -1,24 +1,14 @@
 import Link from 'next/link';
+import { EyeOutlined } from '@ant-design/icons';
 
 export default function InstanceCard({ instance, intl }) {
     return (
-        <div className="wg-card" style={{ width: '26rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="wg-card">
+            <div className="wg-card-head">
                 <div className="wg-avatar">{(instance.container_name || '?')[0].toUpperCase()}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                        style={{
-                            fontWeight: 800,
-                            fontSize: '16px',
-                            color: 'var(--wg-teal)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                        }}
-                    >
-                        {instance.container_name}
-                    </div>
-                    <div style={{ marginTop: 6 }}>
+                <div className="wg-card-id">
+                    <div className="wg-card-title">{instance.container_name}</div>
+                    <div className="wg-card-sub">
                         <span className="wg-tag">
                             {intl['server_vpn_subnet']}: {instance.server_vpn_ip}
                         </span>
@@ -51,7 +41,7 @@ export default function InstanceCard({ instance, intl }) {
 
             <div className="wg-actions">
                 <Link href={`/instance/${instance.id}`} className="wg-pill primary" style={{ textDecoration: 'none' }}>
-                    {intl['view_instance']}
+                    <EyeOutlined /> <span className="wg-pill-label">{intl['view_instance']}</span>
                 </Link>
             </div>
         </div>

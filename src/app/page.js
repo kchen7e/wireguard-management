@@ -19,7 +19,7 @@ export default function Home() {
                     <h2 className="wg-page-title" style={{ margin: '24px 0 16px' }}>
                         {intl['vpn_instances']}
                     </h2>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                    <div className="wg-card-grid">
                         {instances.map((instance) => (
                             <InstanceCard key={instance.id} instance={instance} intl={intl} />
                         ))}
