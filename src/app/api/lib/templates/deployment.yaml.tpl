@@ -20,7 +20,15 @@ spec:
             - /bin/bash
             - -c
           args:
-            - bash /usr/bin/wg-quick up /etc/wireguard/wg0.conf && exec sleep infinity
+            - |
+              for backend in nft legacy; do
+                if iptables-$backend -t nat -L -n >/dev/null 2>&1; then
+                  printf '#!/bin/sh\nexec /sbin/iptables-%s "$@"\n' "$backend" > /usr/local/bin/iptables
+                  chmod +x /usr/local/bin/iptables
+                  break
+                fi
+              done
+              bash /usr/bin/wg-quick up /etc/wireguard/wg0.conf && exec sleep infinity
           securityContext:
             privileged: true
           volumeMounts:
