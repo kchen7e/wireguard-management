@@ -13,7 +13,7 @@ import { apiRequest } from './util/api.js';
 
 const { Content, Footer, Sider } = Layout;
 
-const NARROW_BREAKPOINT = '(max-width: 768px)';
+const NARROW_BREAKPOINT = '(max-width: 900px)';
 
 export default function AppShell({ children }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -208,7 +208,7 @@ export default function AppShell({ children }) {
                 <Layout style={{ minHeight: '100vh' }}>
                     <Sider
                         className="wg-sider"
-                        width={280}
+                        width={220}
                         collapsedWidth={80}
                         collapsible={false}
                         collapsed={isCollapsed}
@@ -237,8 +237,8 @@ export default function AppShell({ children }) {
                         <div className="wg-sider-footer">
                             <Switch
                                 size={isCollapsed ? 'small' : 'medium'}
-                                checkedChildren={isCollapsed ? undefined : '中文'}
-                                unCheckedChildren={isCollapsed ? undefined : 'En'}
+                                checkedChildren="中文"
+                                unCheckedChildren="En"
                                 checked={language === Language.ZH}
                                 onChange={onLanguageChange}
                             />

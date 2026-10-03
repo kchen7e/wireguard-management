@@ -38,7 +38,7 @@ body {
     border-radius: 20px;
     box-shadow: 4px 4px 0 var(--wg-ink-soft);
     padding: 28px;
-    min-width: 0;
+    min-width: 33.5rem;
     min-height: max(360px, 60vh);
 }
 
@@ -269,14 +269,12 @@ body {
 
 /* Card grid */
 .wg-card-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 23rem));
     gap: 16px;
 }
 
 .wg-card-grid > * {
-    flex: 1 1 26rem;
-    max-width: 100%;
     min-width: 0;
 }
 
@@ -325,8 +323,8 @@ body {
 
 /* Narrow view: collapse cards to single-line rows */
 @media (max-width: 768px) {
-    .wg-card-grid > * {
-        flex-basis: 100%;
+    .wg-card-grid {
+        grid-template-columns: 1fr;
     }
 
     .wg-card {
@@ -371,5 +369,6 @@ body {
 
     .wg-panel {
         padding: 18px;
+        min-width: 24rem;
     }
 }
