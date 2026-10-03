@@ -28,6 +28,7 @@ export default function AppShell({ children }) {
     const isCollapsed = collapsed || narrow;
 
     const intl = language.messages;
+    const locale = language.key === Language.ZH.key ? 'zh-CN' : 'en-GB';
 
     const refreshInstances = useCallback(async () => {
         try {
@@ -155,8 +156,8 @@ export default function AppShell({ children }) {
 
     useEffect(() => {
         document.title = language.messages.wireguard_gui;
-        document.documentElement.lang = language.key === Language.ZH.key ? 'zh-CN' : 'en-GB';
-    }, [language]);
+        document.documentElement.lang = locale;
+    }, [language, locale]);
 
     const items = [
         {
@@ -193,6 +194,7 @@ export default function AppShell({ children }) {
         <AppContext.Provider
             value={{
                 intl,
+                locale,
                 instances,
                 instancesById,
                 clientsByInstance,

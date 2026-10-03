@@ -5,6 +5,7 @@ import { EN_GB } from './intl';
 
 export const AppContext = createContext({
     intl: EN_GB,
+    locale: 'en-GB',
     instances: [],
     instancesById: {},
     clientsByInstance: {},

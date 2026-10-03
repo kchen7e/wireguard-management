@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Collapse, Form, Image, Input, Modal, Popconfirm, message } from 'antd';
 import { DeleteOutlined, EditOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { isValidDescription } from './name.js';
+import { formatLastSeen } from './time.js';
 import { WG_HANDSHAKE_INTERVAL_SECONDS } from './constants.js';
 import { useApp } from '../AppContext.jsx';
 
@@ -19,23 +20,6 @@ function formatBytes(value) {
     return `${val.toFixed(val >= 100 ? 0 : 1)} ${units[i]}`;
 }
 
-function formatLastSeen(value) {
-    if (!value) return '-';
-    const seconds = Number(value);
-    if (!Number.isFinite(seconds) || seconds <= 0) return String(value);
-    const d = new Date(seconds * 1000);
-    if (Number.isNaN(d.getTime())) return String(value);
-    const diff = Date.now() - d.getTime();
-    if (diff < 0) return String(value);
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    return `${days}d ago`;
-}
-
 function statusOf(client) {
     if (!client.last_handshake) return 'offline';
     const seconds = Number(client.last_handshake);
@@ -46,7 +30,7 @@ function statusOf(client) {
 }
 
 export default function ClientCard({ client, intl }) {
-    const { deleteClient, updateClient } = useApp();
+    const { deleteClient, updateClient, locale } = useApp();
     const [showQr, setShowQr] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -99,7 +83,7 @@ export default function ClientCard({ client, intl }) {
             .toUpperCase() || '?';
 
     const status = statusOf(client);
-    const lastSeen = formatLastSeen(client.last_handshake);
+    const lastSeen = formatLastSeen(client.last_handshake, locale);
     const received = formatBytes(client.transfer_rx);
     const sent = formatBytes(client.transfer_tx);
 
