@@ -101,6 +101,18 @@ body {
     color: var(--wg-teal);
 }
 
+.wg-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.wg-brand-version {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wg-muted);
+}
+
 .wg-sider .ant-layout-sider-children {
     display: flex;
     flex-direction: column;
@@ -272,6 +284,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(18rem, 23rem));
     gap: 16px;
+    align-items: start;
 }
 
 .wg-card-grid > * {

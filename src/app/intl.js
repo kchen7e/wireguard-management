@@ -1,5 +1,5 @@
 export const CN_ZH = {
-    wireguard_gui: 'Wireguard 管理界面',
+    wireguard_gui: 'WireGuard 管理界面',
     users_registered: 'All Users on Interface wg0',
     ip: 'IP地址',
     allowed_source: '准许IP源',
@@ -43,7 +43,7 @@ export const CN_ZH = {
 };
 
 export const EN_GB = {
-    wireguard_gui: 'Wireguard Management',
+    wireguard_gui: 'WireGuard Management',
     users_registered: 'All Users on Interface wg0',
     ip: 'IP',
     allowed_source: 'Allowed Source',

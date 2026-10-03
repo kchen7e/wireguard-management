@@ -10,6 +10,7 @@ import { AppContext } from './AppContext.jsx';
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Language } from './intl';
 import { themeConfig } from './theme';
 import { apiRequest } from './util/api.js';
+import packageJson from '../../package.json';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -225,7 +226,12 @@ export default function AppShell({ children }) {
                     >
                         <div className="wg-brand">
                             <div className="wg-brand-logo">W</div>
-                            {!isCollapsed && <span className="wg-brand-name">WireGuard</span>}
+                            {!isCollapsed && (
+                                <div className="wg-brand-text">
+                                    <span className="wg-brand-name">WireGuard</span>
+                                    <span className="wg-brand-version">v{packageJson.version}</span>
+                                </div>
+                            )}
                         </div>
                         <Menu
                             mode="inline"
@@ -265,7 +271,7 @@ export default function AppShell({ children }) {
                                 background: 'transparent',
                             }}
                         >
-                            WireGuard Management
+                            WireGuard Management v{packageJson.version}
                         </Footer>
                     </Layout>
                 </Layout>

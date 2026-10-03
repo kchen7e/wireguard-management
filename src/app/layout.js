@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-    title: 'Wireguard Management',
+    title: 'WireGuard Management',
     description: 'Manage WireGuard instances on a k3s cluster',
 };
 
