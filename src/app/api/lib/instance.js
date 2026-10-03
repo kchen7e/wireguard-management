@@ -52,8 +52,48 @@ export async function getClientsByInstanceId(instanceId) {
     return result.rows;
 }
 
-export async function getWgRealTimeData() {
-    return {};
+export function parseWgDumpStatus(dump) {
+    const status = {};
+    for (const line of dump.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        const fields = trimmed.split('\t');
+        const publicKey = fields[0];
+        if (!publicKey) continue;
+
+        const lastHandshake = parseInt(fields[4], 10);
+        const transferRx = parseInt(fields[5], 10);
+        const transferTx = parseInt(fields[6], 10);
+
+        status[publicKey] = {
+            last_handshake: Number.isFinite(lastHandshake) && lastHandshake > 0 ? lastHandshake : null,
+            transfer_rx: Number.isFinite(transferRx) ? transferRx : 0,
+            transfer_tx: Number.isFinite(transferTx) ? transferTx : 0,
+        };
+    }
+    return status;
+}
+
+export async function getWgRealTimeData(instance, clients) {
+    const { stdout } = await runKubectl([
+        'exec',
+        '-n',
+        namespace(),
+        `deployment/wg-${instance.id}`,
+        '--',
+        'wg',
+        'show',
+        instance.interface_name || 'wg0',
+        'dump',
+    ]);
+    const statusByKey = parseWgDumpStatus(stdout);
+    return clients.map((client) => ({
+        id: client.id,
+        public_key: client.public_key,
+        last_handshake: statusByKey[client.public_key]?.last_handshake ?? null,
+        transfer_rx: statusByKey[client.public_key]?.transfer_rx ?? 0,
+        transfer_tx: statusByKey[client.public_key]?.transfer_tx ?? 0,
+    }));
 }
 
 export async function generatePSK() {

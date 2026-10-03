@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getInstanceById, getWgRealTimeData } from '../../../lib/instance.js';
+import { getInstanceById, getClientsByInstanceId, getWgRealTimeData } from '../../../lib/instance.js';
 
 export async function GET(request, { params }) {
     const { id } = await params;
@@ -9,7 +9,8 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
         }
 
-        const data = await getWgRealTimeData();
+        const clients = await getClientsByInstanceId(id);
+        const data = await getWgRealTimeData(instance, clients);
         return NextResponse.json({ data });
     } catch (error) {
         console.error('Error fetching WireGuard data:', error);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Collapse, Form, Image, Input, Modal, Popconfirm, message } from 'antd';
 import { DeleteOutlined, EditOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { isValidDescription } from './name.js';
+import { WG_HANDSHAKE_INTERVAL_SECONDS } from './constants.js';
 import { useApp } from '../AppContext.jsx';
 
 function formatBytes(value) {
@@ -20,7 +21,9 @@ function formatBytes(value) {
 
 function formatLastSeen(value) {
     if (!value) return '-';
-    const d = new Date(value);
+    const seconds = Number(value);
+    if (!Number.isFinite(seconds) || seconds <= 0) return String(value);
+    const d = new Date(seconds * 1000);
     if (Number.isNaN(d.getTime())) return String(value);
     const diff = Date.now() - d.getTime();
     if (diff < 0) return String(value);
@@ -34,12 +37,12 @@ function formatLastSeen(value) {
 }
 
 function statusOf(client) {
-    if (!client.last_seen) return 'unknown';
-    const diff = Date.now() - new Date(client.last_seen).getTime();
-    if (Number.isNaN(diff) || diff < 0) return 'unknown';
-    if (diff < 5 * 60000) return 'online';
-    if (diff < 24 * 3600000) return 'recent';
-    return 'unknown';
+    if (!client.last_handshake) return 'offline';
+    const seconds = Number(client.last_handshake);
+    if (!Number.isFinite(seconds) || seconds <= 0) return 'offline';
+    const diff = Date.now() - seconds * 1000;
+    if (Number.isNaN(diff)) return 'offline';
+    return diff <= WG_HANDSHAKE_INTERVAL_SECONDS * 1000 ? 'online' : 'offline';
 }
 
 export default function ClientCard({ client, intl }) {
@@ -96,10 +99,9 @@ export default function ClientCard({ client, intl }) {
             .toUpperCase() || '?';
 
     const status = statusOf(client);
-    const lastSeen = formatLastSeen(client.last_seen);
-    const [recvRaw, sentRaw] = (client.traffic_counter || ',').split(',');
-    const received = formatBytes(recvRaw);
-    const sent = formatBytes(sentRaw);
+    const lastSeen = formatLastSeen(client.last_handshake);
+    const received = formatBytes(client.transfer_rx);
+    const sent = formatBytes(client.transfer_tx);
 
     return (
         <div className="wg-card" style={{ position: 'relative' }}>

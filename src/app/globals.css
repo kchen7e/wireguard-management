@@ -180,15 +180,11 @@ body {
 }
 
 .wg-status-dot.online {
-    background: var(--wg-teal);
+    background: #2f9e44;
 }
 
-.wg-status-dot.recent {
-    background: var(--wg-orange);
-}
-
-.wg-status-dot.unknown {
-    background: var(--wg-ochre);
+.wg-status-dot.offline {
+    background: #e03131;
 }
 
 .wg-icon-btn {

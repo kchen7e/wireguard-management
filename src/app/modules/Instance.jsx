@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { Spin, Collapse } from 'antd';
 import AddUserTable from '../util/AddUserTable.jsx';
 import ClientCard from '../util/ClientCard.jsx';
+import { apiRequest } from '../util/api.js';
+import { CLIENT_STATUS_POLL_INTERVAL_MS } from '../util/constants.js';
 import { useApp } from '../AppContext.jsx';
 
 export default function Instance({ intl, instance }) {
     const { clientsByInstance, loadClients } = useApp();
     const clients = clientsByInstance[instance.id];
     const [error, setError] = useState(null);
+    const [statusByClientId, setStatusByClientId] = useState({});
     const loading = !clients && !error;
 
     useEffect(() => {
@@ -23,6 +26,36 @@ export default function Instance({ intl, instance }) {
             cancelled = true;
         };
     }, [clientsByInstance, loadClients, instance.id]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const pollStatus = async () => {
+            try {
+                const payload = await apiRequest(`/api/instances/${instance.id}/wg`);
+                const list = payload.data || [];
+                const next = {};
+                for (const item of list) {
+                    next[item.id] = item;
+                }
+                if (!cancelled) setStatusByClientId(next);
+            } catch (err) {
+                console.error('Error fetching client status:', err);
+            }
+        };
+
+        pollStatus();
+        const timer = setInterval(pollStatus, CLIENT_STATUS_POLL_INTERVAL_MS);
+        return () => {
+            cancelled = true;
+            clearInterval(timer);
+        };
+    }, [instance.id]);
+
+    const clientsWithStatus = (clients || []).map((client) => ({
+        ...client,
+        ...(statusByClientId[client.id] || {}),
+    }));
 
     return (
         <>
@@ -54,7 +87,7 @@ export default function Instance({ intl, instance }) {
             <AddUserTable instanceId={instance.id} subnet={instance.server_vpn_ip} intl={intl} />
             {loading && <Spin style={{ marginTop: '1rem', display: 'block' }} />}
             <div className="wg-card-grid" style={{ marginTop: '1.5rem' }}>
-                {(clients || []).map((client) => (
+                {clientsWithStatus.map((client) => (
                     <ClientCard key={client.id} client={client} intl={intl} />
                 ))}
             </div>
