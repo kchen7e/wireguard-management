@@ -12,6 +12,38 @@ with `kubectl`.
 - A k3s cluster and `kubectl` with a valid kubeconfig (see
   [Host setup for WireGuard on k3s](#host-setup-for-wireguard-on-k3s))
 
+## Deployment topology
+
+Run a single cluster. The project targets a **single-node** k3s install, or a
+multi-node cluster in which the instance pods are pinned to one node
+(`nodeSelector` / node affinity).
+
+MetalLB is not a proxy and is not in the packet path: it allocates a
+load-balancer IP to each `LoadBalancer` Service and makes the network deliver
+that IP to a node. In layer-2 mode exactly one node answers ARP/NDP for the IP,
+so every port of that IP arrives at that one node, and `kube-proxy` on that node
+spreads connections across the pods behind the Service.
+
+`externalTrafficPolicy` is fixed per mode in the Service templates, because the
+right value follows from the mode rather than from configuration:
+
+| Mode        | Policy    | Load-balancer IP                | Client source IP        |
+| ----------- | --------- | ------------------------------- | ----------------------- |
+| `dedicated` | `Local`   | one per instance                | real peer IP            |
+| `shared`    | `Cluster` | one shared, a port per instance | masqueraded to the node |
+
+`dedicated` can use `Local` because each instance has its own IP: MetalLB
+announces it from the node running that instance's pod, so there is no cross-node
+hop and no SNAT, and WireGuard sees the real peer address.
+
+`shared` must use `Cluster`. MetalLB only permits `Local` on a shared IP when
+every Service on it selects the _exact same pods_: in layer-2 mode one node
+answers ARP/NDP for the IP, so every port of it arrives at that one node, and
+`Local` forbids forwarding to pods on other nodes. Identical selectors are what
+guarantee the same eligible nodes back every port. This project gives each
+instance its own Deployment and a distinct `app: wg-<id>` selector, so a second
+instance on a shared IP could not be allocated the IP.
+
 ## Configuration
 
 | Variable                  | Required | Default                                 | Description                                                                 |
@@ -172,15 +204,27 @@ mode is used.
 
 Notes:
 
-- `externalTrafficPolicy` stays `Cluster` (the default). Setting `Local` breaks
-  sharing when the Services have different pod selectors.
+- `externalTrafficPolicy` is fixed per mode: dedicated renders `Local`, which
+  preserves the real client source IP; shared renders `Cluster`, which SNATs the
+  client source address to the node's internal IP (e.g. a `10.244.x.x`
+  Flannel/cni0 address) so WireGuard reports that masqueraded address as the peer
+  endpoint.
+- MetalLB only permits `Local` on a shared IP when every Service on that IP has
+  an _identical_ pod selector - it compares the selectors as a "backend key" and
+  refuses the allocation when they differ, leaving the Service without an
+  external IP. Each instance here is its own Deployment with a distinct
+  `app: wg-<id>` selector, so with more than one instance on a shared IP the
+  second Service stays `<pending>`; a single instance on the shared IP is fine.
+  Use one dedicated IP per instance if you need real client IPs across several
+  instances. See [Deployment topology](#deployment-topology).
 - In both modes the client endpoint is `<server_endpoint>:<server_listen_port>`,
   so the port is what distinguishes instances at the edge.
 
 ### 7. Router + DNS
 
-- Dedicated mode: each instance Service gets its own VIP.
-- Shared mode: all instances share one VIP; the port separates them.
+- Dedicated mode: each instance Service gets its own load-balancer IP (its
+  "VIP", the `EXTERNAL-IP` shown by `kubectl get svc`).
+- Shared mode: all instances share one load-balancer IP; the port separates them.
 
 - LAN clients: `wg-<id>.example.com` -> the VIP (split-horizon DNS).
 - Internet clients: `wg-<id>.example.com` -> the public IP; the router

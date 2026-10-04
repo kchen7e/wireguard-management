@@ -10,6 +10,9 @@ metadata:
 {% endif %}
 spec:
   type: LoadBalancer
+  # MetalLB forbids `Local` on a shared IP across differing pod selectors, so
+  # sharing inherently masquerades the client source IP (SNAT).
+  externalTrafficPolicy: Cluster
   allocateLoadBalancerNodePorts: false
   selector:
     app: {{ name }}

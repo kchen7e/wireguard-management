@@ -9,6 +9,7 @@ metadata:
 {% endif %}
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   allocateLoadBalancerNodePorts: false
   selector:
     app: {{ name }}

@@ -127,6 +127,10 @@ export default function ClientCard({ client, intl }) {
                     <span className="wg-kv-value">{client.allowed_ips}</span>
                 </div>
                 <div className="wg-kv-row">
+                    <span className="wg-kv-label">{intl['endpoint_ip']}</span>
+                    <span className="wg-kv-value">{client.endpoint || '-'}</span>
+                </div>
+                <div className="wg-kv-row">
                     <span className="wg-kv-label">{intl['last_seen']}</span>
                     <span className="wg-kv-value">{lastSeen}</span>
                 </div>

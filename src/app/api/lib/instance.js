@@ -66,6 +66,7 @@ export function parseWgDumpStatus(dump) {
         const transferTx = parseInt(fields[6], 10);
 
         status[publicKey] = {
+            endpoint: fields[2] && fields[2] !== '(none)' ? fields[2] : null,
             last_handshake: Number.isFinite(lastHandshake) && lastHandshake > 0 ? lastHandshake : null,
             transfer_rx: Number.isFinite(transferRx) ? transferRx : 0,
             transfer_tx: Number.isFinite(transferTx) ? transferTx : 0,
@@ -90,6 +91,7 @@ export async function getWgRealTimeData(instance, clients) {
     return clients.map((client) => ({
         id: client.id,
         public_key: client.public_key,
+        endpoint: statusByKey[client.public_key]?.endpoint ?? null,
         last_handshake: statusByKey[client.public_key]?.last_handshake ?? null,
         transfer_rx: statusByKey[client.public_key]?.transfer_rx ?? 0,
         transfer_tx: statusByKey[client.public_key]?.transfer_tx ?? 0,

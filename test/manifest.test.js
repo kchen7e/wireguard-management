@@ -84,6 +84,29 @@ describe('buildInstanceManifest', () => {
             restoreEnv('SHARED_LOAD_BALANCER_IP', originalIp);
         }
     });
+
+    it('uses Local for a dedicated IP so the client source IP is preserved', () => {
+        const originalShared = process.env.SHARED_LOAD_BALANCER_IP;
+        delete process.env.SHARED_LOAD_BALANCER_IP;
+        try {
+            const yaml = buildInstanceManifest(instance, clients);
+            expect(yaml).toContain('externalTrafficPolicy: Local');
+        } finally {
+            restoreEnv('SHARED_LOAD_BALANCER_IP', originalShared);
+        }
+    });
+
+    it('uses Cluster for a shared IP, where Local is not permitted', () => {
+        const originalShared = process.env.SHARED_LOAD_BALANCER_IP;
+        process.env.SHARED_LOAD_BALANCER_IP = '203.0.113.10';
+        try {
+            const yaml = buildInstanceManifest(instance, clients);
+            expect(yaml).toContain('externalTrafficPolicy: Cluster');
+            expect(yaml).not.toContain('externalTrafficPolicy: Local');
+        } finally {
+            restoreEnv('SHARED_LOAD_BALANCER_IP', originalShared);
+        }
+    });
 });
 
 function restoreEnv(key, value) {
