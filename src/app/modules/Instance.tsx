@@ -90,7 +90,12 @@ export default function Instance({ intl, instance }: { intl: Messages; instance:
             {loading && <Spin style={{ marginTop: '1rem', display: 'block' }} />}
             <div className="wg-card-grid" style={{ marginTop: '1.5rem' }}>
                 {clientsWithStatus.map((client) => (
-                    <ClientCard key={client.id} client={client} intl={intl} />
+                    <ClientCard
+                        key={client.id}
+                        client={client}
+                        intl={intl}
+                        serverAddress={`${instance.server_endpoint}:${instance.server_listen_port}`}
+                    />
                 ))}
             </div>
         </>

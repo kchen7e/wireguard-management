@@ -1,6 +1,13 @@
-import { useState } from 'react';
-import { Button, Collapse, Form, Image, Input, Modal, Popconfirm, message } from 'antd';
-import { DeleteOutlined, EditOutlined, FileTextOutlined, MailOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { useRef, useState } from 'react';
+import { App, Button, Collapse, Form, Image, Input, Modal, Popconfirm } from 'antd';
+import {
+    CopyOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    FileTextOutlined,
+    MailOutlined,
+    QrcodeOutlined,
+} from '@ant-design/icons';
 import { isValidDescription } from './name';
 import { formatLastSeen } from './time';
 import { WG_HANDSHAKE_INTERVAL_SECONDS } from './constants';
@@ -32,16 +39,84 @@ function statusOf(client: ClientWithStatus): 'online' | 'offline' {
     return diff <= WG_HANDSHAKE_INTERVAL_SECONDS * 1000 ? 'online' : 'offline';
 }
 
-export default function ClientCard({ client, intl }: { client: ClientWithStatus; intl: Messages }) {
+/**
+ * Copy an already-rendered <img> by selecting it and calling execCommand. This is the only
+ * way to put an image on the clipboard without a secure context (navigator.clipboard is
+ * undefined over plain http on a LAN). It must run synchronously inside the click handler.
+ */
+function copyImageSelection(img: HTMLImageElement): void {
+    const range = document.createRange();
+    range.selectNode(img);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    try {
+        if (!document.execCommand('copy')) throw new Error('Copy to clipboard failed');
+    } finally {
+        selection?.removeAllRanges();
+    }
+}
+
+export default function ClientCard({
+    client,
+    intl,
+    serverAddress,
+}: {
+    client: ClientWithStatus;
+    intl: Messages;
+    serverAddress?: string;
+}) {
     const { deleteClient, updateClient, locale } = useApp();
+    const { message } = App.useApp();
     const [showQr, setShowQr] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [form] = Form.useForm();
+    const qrBoxRef = useRef<HTMLDivElement>(null);
 
+    // Trigger the download in place. window.open() pointed a new tab at the file, which flashed a
+    // blank page before the browser worked out it was an attachment and downloaded it instead.
     const downloadConfig = () => {
-        window.open(`/api/clients/${client.id}/config`, '_blank');
+        const link = document.createElement('a');
+        link.href = `/api/clients/${client.id}/config`;
+        link.download = ''; // empty value = let the server's Content-Disposition name the file
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
+    // Copies the QR image itself (not the config text) so it can be pasted into a chat.
+    const copyQr = async () => {
+        const qrSrc = `/api/clients/${client.id}/qr`;
+        const renderedImage = () => {
+            const img = qrBoxRef.current?.querySelector('img');
+            if (!img) throw new Error('QR code is not ready yet');
+            return img;
+        };
+
+        // Preferred path: the async clipboard API, available on https or http://localhost.
+        if (window.isSecureContext && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+            try {
+                const png = fetch(qrSrc).then((response) => {
+                    if (!response.ok) throw new Error('Failed to load QR code');
+                    return response.blob();
+                });
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+                message.success('QR code copied');
+                return;
+            } catch (error) {
+                console.error('Clipboard API failed, falling back to selection copy:', error);
+            }
+        }
+
+        try {
+            copyImageSelection(renderedImage());
+            message.success('QR code copied');
+        } catch (error) {
+            console.error('Error copying QR code:', error);
+            message.error('Could not copy the QR code - use Download config instead');
+        }
     };
 
     const handleDelete = async () => {
@@ -168,7 +243,12 @@ export default function ClientCard({ client, intl }: { client: ClientWithStatus;
                 <button type="button" className="wg-pill" onClick={downloadConfig}>
                     <FileTextOutlined /> <span className="wg-pill-label">{intl['download_config'] || 'Config'}</span>
                 </button>
-                <button type="button" className="wg-pill" onClick={() => setShowQr((v) => !v)}>
+                <button
+                    type="button"
+                    className="wg-pill qr-pill"
+                    onClick={() => setShowQr(true)}
+                    title={intl['show_qr'] || 'Show QR'}
+                >
                     <QrcodeOutlined /> <span className="wg-pill-label">{intl['show_qr'] || 'QR'}</span>
                 </button>
                 <button type="button" className="wg-pill">
@@ -176,11 +256,38 @@ export default function ClientCard({ client, intl }: { client: ClientWithStatus;
                 </button>
             </div>
 
-            {showQr && (
-                <div className="wg-card-qr">
-                    <Image src={`/api/clients/${client.id}/qr`} alt="QR code" width={200} preview={false} />
+            <Modal
+                title={client.description}
+                open={showQr}
+                onCancel={() => setShowQr(false)}
+                footer={null}
+                width={360}
+                centered
+            >
+                <div className="wg-scan">
+                    <div className="wg-scan-qr" ref={qrBoxRef}>
+                        <Image
+                            src={`/api/clients/${client.id}/qr`}
+                            alt="WireGuard config QR code"
+                            width={260}
+                            preview={false}
+                        />
+                    </div>
+                    <div className="wg-scan-meta">
+                        <div className="wg-scan-ip">{client.client_ip}</div>
+                        {serverAddress && <div className="wg-scan-endpoint">{serverAddress}</div>}
+                    </div>
+                    <p className="wg-scan-hint">{intl['scan_hint']}</p>
+                    <div className="wg-scan-actions">
+                        <button type="button" className="wg-pill" onClick={downloadConfig}>
+                            <FileTextOutlined /> <span>{intl['download_config'] || 'Config'}</span>
+                        </button>
+                        <button type="button" className="wg-pill" onClick={copyQr}>
+                            <CopyOutlined /> <span>{intl['copy_qr']}</span>
+                        </button>
+                    </div>
                 </div>
-            )}
+            </Modal>
 
             <Modal title={intl['edit'] || 'Edit'} open={editOpen} onCancel={() => setEditOpen(false)} footer={null}>
                 <Form form={form} onFinish={handleUpdate} layout="vertical">

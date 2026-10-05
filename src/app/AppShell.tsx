@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { PieChartOutlined, UserOutlined } from '@ant-design/icons';
-import { ConfigProvider, Layout, Menu, Switch } from 'antd';
+import { App, ConfigProvider, Layout, Menu, Switch } from 'antd';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -214,75 +214,77 @@ export default function AppShell({ children }: { children: ReactNode }) {
             }}
         >
             <ConfigProvider theme={themeConfig}>
-                <Layout style={{ minHeight: '100vh' }}>
-                    <Sider
-                        className="wg-sider"
-                        width={220}
-                        collapsedWidth={80}
-                        collapsible={false}
-                        collapsed={isCollapsed}
-                        onCollapse={(value) => setCollapsed(value)}
-                        style={{
-                            background: 'var(--wg-yellow)',
-                            borderRight: '2px solid var(--wg-ink)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '100vh',
-                            position: 'sticky',
-                            top: 0,
-                        }}
-                    >
-                        <div className="wg-brand">
-                            <div className="wg-brand-logo">W</div>
-                            {!isCollapsed && (
-                                <div className="wg-brand-text">
-                                    <span className="wg-brand-name">WireGuard</span>
-                                    <span className="wg-brand-version">v{packageJson.version}</span>
-                                </div>
-                            )}
-                        </div>
-                        <Menu
-                            mode="inline"
-                            selectedKeys={[pathname]}
-                            defaultOpenKeys={['instances']}
-                            items={items}
-                            style={{ background: 'transparent', border: 'none', flex: 1, overflow: 'auto' }}
-                        />
-                        <div className="wg-sider-footer">
-                            <Switch
-                                size={isCollapsed ? 'small' : 'medium'}
-                                checkedChildren="中文"
-                                unCheckedChildren="En"
-                                checked={language === Language.ZH}
-                                onChange={onLanguageChange}
-                            />
-                            {!isCollapsed && (
-                                <img
-                                    src="/dragon.webp"
-                                    alt="WireGuard dragon"
-                                    className="wg-dragon"
-                                    width={240}
-                                    height={135}
-                                />
-                            )}
-                        </div>
-                    </Sider>
-                    <Layout>
-                        <Content style={{ margin: '24px' }}>
-                            <div className="wg-panel">{children}</div>
-                        </Content>
-                        <Footer
+                <App component={false}>
+                    <Layout style={{ minHeight: '100vh' }}>
+                        <Sider
+                            className="wg-sider"
+                            width={220}
+                            collapsedWidth={80}
+                            collapsible={false}
+                            collapsed={isCollapsed}
+                            onCollapse={(value) => setCollapsed(value)}
                             style={{
-                                textAlign: 'center',
-                                color: 'var(--wg-muted)',
-                                padding: '12px 24px',
-                                background: 'transparent',
+                                background: 'var(--wg-yellow)',
+                                borderRight: '2px solid var(--wg-ink)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '100vh',
+                                position: 'sticky',
+                                top: 0,
                             }}
                         >
-                            WireGuard Management v{packageJson.version}
-                        </Footer>
+                            <div className="wg-brand">
+                                <div className="wg-brand-logo">W</div>
+                                {!isCollapsed && (
+                                    <div className="wg-brand-text">
+                                        <span className="wg-brand-name">WireGuard</span>
+                                        <span className="wg-brand-version">v{packageJson.version}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <Menu
+                                mode="inline"
+                                selectedKeys={[pathname]}
+                                defaultOpenKeys={['instances']}
+                                items={items}
+                                style={{ background: 'transparent', border: 'none', flex: 1, overflow: 'auto' }}
+                            />
+                            <div className="wg-sider-footer">
+                                <Switch
+                                    size={isCollapsed ? 'small' : 'medium'}
+                                    checkedChildren="中文"
+                                    unCheckedChildren="En"
+                                    checked={language === Language.ZH}
+                                    onChange={onLanguageChange}
+                                />
+                                {!isCollapsed && (
+                                    <img
+                                        src="/dragon.webp"
+                                        alt="WireGuard dragon"
+                                        className="wg-dragon"
+                                        width={240}
+                                        height={135}
+                                    />
+                                )}
+                            </div>
+                        </Sider>
+                        <Layout>
+                            <Content style={{ margin: '24px' }}>
+                                <div className="wg-panel">{children}</div>
+                            </Content>
+                            <Footer
+                                style={{
+                                    textAlign: 'center',
+                                    color: 'var(--wg-muted)',
+                                    padding: '12px 24px',
+                                    background: 'transparent',
+                                }}
+                            >
+                                WireGuard Management v{packageJson.version}
+                            </Footer>
+                        </Layout>
                     </Layout>
-                </Layout>
+                </App>
             </ConfigProvider>
         </AppContext.Provider>
     );

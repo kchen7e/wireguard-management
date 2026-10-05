@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Modal, Form, Input, message } from 'antd';
+import { App, Button, Modal, Form, Input } from 'antd';
 import { UserAddOutlined } from '@ant-design/icons';
 import { isIpInSubnet, parseCidr } from './ip';
 import { isValidDescription } from './name';
@@ -18,6 +18,7 @@ export default function AddUserTable({
     intl: Messages;
 }) {
     const { addClient } = useApp();
+    const { message } = App.useApp();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();

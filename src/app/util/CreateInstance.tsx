@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Col, Modal, Form, Input, Row, message } from 'antd';
+import { App, Button, Col, Modal, Form, Input, Row } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { isValidServerCidr } from './ip';
 import { isValidInstanceName } from './name';
@@ -18,6 +18,7 @@ interface AllocationPreview {
 
 export default function CreateInstance({ intl }: { intl: Messages }) {
     const { createInstance } = useApp();
+    const { message } = App.useApp();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [lbMode, setLbMode] = useState<LbMode | null>(null);

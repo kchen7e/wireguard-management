@@ -324,10 +324,51 @@ body {
     font-weight: 500;
 }
 
-.wg-card-qr {
-    flex-basis: 100%;
-    margin-top: 0.5rem;
+/* QR scan sheet */
+.wg-scan {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.wg-scan-qr {
+    display: flex;
+    padding: 12px;
+    background: #fff;
+    border: 2px solid var(--wg-ink);
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 var(--wg-ink-soft);
+}
+
+.wg-scan-meta {
     text-align: center;
+    line-height: 1.55;
+}
+
+.wg-scan-ip {
+    font-weight: 700;
+    color: var(--wg-teal);
+}
+
+.wg-scan-endpoint {
+    font-weight: 700;
+    color: var(--wg-muted);
+    word-break: break-all;
+}
+
+.wg-scan-hint {
+    margin: 0;
+    color: var(--wg-muted);
+    font-size: 12.5px;
+    text-align: center;
+}
+
+.wg-scan-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 /* Narrow view: collapse cards to single-line rows */
@@ -374,6 +415,11 @@ body {
 
     .wg-pill {
         padding: 6px 10px;
+    }
+
+    /* A QR can't be scanned by the device showing it; "Config" is the mobile path. */
+    .wg-pill.qr-pill {
+        display: none;
     }
 
     .wg-panel {
