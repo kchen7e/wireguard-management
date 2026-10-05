@@ -1,5 +1,16 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Dotfiles and dotfolders are ignored by default, so scratch directories stay out of
+# the way. Everything that belongs in the repository is re-included below; a folder
+# has to be re-included before its contents can be.
+.*
+!.gitignore
+!.dockerignore
+!.prettierrc
+!.github/
+!.husky/
+!.devcontainer/
+
 # dependencies
 /node_modules
 /.pnp
@@ -45,5 +56,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-!.gitignore

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { PieChartOutlined, UserOutlined } from '@ant-design/icons';
+import { DashboardOutlined, UserOutlined } from '@ant-design/icons';
 import { App, ConfigProvider, Layout, Menu, Switch } from 'antd';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -168,8 +168,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
     const items = [
         {
             key: '/',
-            icon: <PieChartOutlined />,
-            label: <Link href="/">{intl['home']}</Link>,
+            icon: <DashboardOutlined />,
+            label: <Link href="/">{intl['dashboard']}</Link>,
         },
         {
             key: 'instances',
