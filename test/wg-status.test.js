@@ -25,15 +25,20 @@ describe('parseWgDumpStatus', () => {
         ].join('\n');
 
         expect(parseWgDumpStatus(dump)).toEqual({
-            AAA: { last_handshake: 1700000000, transfer_rx: 1024, transfer_tx: 2048 },
-            BBB: { last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
+            AAA: {
+                endpoint: '10.13.13.2:51820',
+                last_handshake: 1700000000,
+                transfer_rx: 1024,
+                transfer_tx: 2048,
+            },
+            BBB: { endpoint: null, last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
         });
     });
 
     it('ignores blank lines', () => {
         const dump = ['', '   ', 'AAA\t(none)\t(none)\t10.13.13.2/32\t5\t1\t2\t0', ''].join('\n');
         expect(parseWgDumpStatus(dump)).toEqual({
-            AAA: { last_handshake: 5, transfer_rx: 1, transfer_tx: 2 },
+            AAA: { endpoint: null, last_handshake: 5, transfer_rx: 1, transfer_tx: 2 },
         });
     });
 });
@@ -63,26 +68,33 @@ describe('getWgRealTimeData', () => {
 
     it('maps dump status back onto clients by public key', async () => {
         runKubectl.mockResolvedValue({
-            stdout: 'AAA\t(none)\t(none)\t10.13.13.2/32\t1700000000\t10\t20\t25\n',
+            stdout: 'AAA\t(none)\t203.0.113.7:51820\t10.13.13.2/32\t1700000000\t10\t20\t25\n',
             stderr: '',
         });
 
         const data = await getWgRealTimeData(instance, clients);
 
         expect(data).toEqual([
-            { id: 12, public_key: 'AAA', last_handshake: 1700000000, transfer_rx: 10, transfer_tx: 20 },
-            { id: 13, public_key: 'CCC', last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
+            {
+                id: 12,
+                public_key: 'AAA',
+                endpoint: '203.0.113.7:51820',
+                last_handshake: 1700000000,
+                transfer_rx: 10,
+                transfer_tx: 20,
+            },
+            { id: 13, public_key: 'CCC', endpoint: null, last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
         ]);
     });
 
-    it('returns null handshake and zero counters for missing peers', async () => {
+    it('returns null endpoint and handshake with zero counters for missing peers', async () => {
         runKubectl.mockResolvedValue({ stdout: '', stderr: '' });
 
         const data = await getWgRealTimeData(instance, clients);
 
         expect(data).toEqual([
-            { id: 12, public_key: 'AAA', last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
-            { id: 13, public_key: 'CCC', last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
+            { id: 12, public_key: 'AAA', endpoint: null, last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
+            { id: 13, public_key: 'CCC', endpoint: null, last_handshake: null, transfer_rx: 0, transfer_tx: 0 },
         ]);
     });
 });

@@ -72,6 +72,7 @@ async function ensureSchemaUnsafe() {
     const indexStatements = [
         `CREATE INDEX IF NOT EXISTS idx_clients_instance_id ON clients(instance_id)`,
         `CREATE INDEX IF NOT EXISTS idx_clients_public_key ON clients(public_key)`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_instances_server_listen_port ON instances(server_listen_port)`,
     ];
 
     for (const statement of indexStatements) {

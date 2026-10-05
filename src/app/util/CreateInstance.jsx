@@ -12,6 +12,7 @@ export default function CreateInstance({ intl }) {
     const [loading, setLoading] = useState(false);
     const [lbMode, setLbMode] = useState(null);
     const [nextLbIp, setNextLbIp] = useState(null);
+    const [nextListenPort, setNextListenPort] = useState(null);
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -22,9 +23,10 @@ export default function CreateInstance({ intl }) {
                 if (cancelled) return;
                 setLbMode(payload.data.mode);
                 setNextLbIp(payload.data.next_load_balancer_ip);
+                setNextListenPort(payload.data.next_listen_port);
             })
             .catch((error) => {
-                if (!cancelled) console.error('Error resolving load balancer pool:', error);
+                if (!cancelled) console.error('Error resolving next allocation:', error);
             });
         return () => {
             cancelled = true;
@@ -107,6 +109,11 @@ export default function CreateInstance({ intl }) {
                     {lbMode === 'dedicated' && nextLbIp && (
                         <Form.Item label={intl['load_balancer_ip']} extra={intl['load_balancer_ip_auto']}>
                             <Input value={nextLbIp} disabled />
+                        </Form.Item>
+                    )}
+                    {nextListenPort && (
+                        <Form.Item label={intl['server_listen_port']} extra={intl['listen_port_auto']}>
+                            <Input value={nextListenPort} disabled />
                         </Form.Item>
                     )}
                     <Form.Item label={intl['dns']} name="dns">

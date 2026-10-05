@@ -70,6 +70,11 @@ export function lbMode() {
     return sharedIp && isValidIpv4(sharedIp) ? 'shared' : 'dedicated';
 }
 
+// `externalTrafficPolicy` is fixed per mode in the Service templates:
+// dedicated uses `Local` (own IP per instance, so the real client source IP is
+// preserved) and shared uses `Cluster` (MetalLB only allows `Local` on a shared
+// IP when every Service on it selects the exact same pods, which the
+// per-instance `app: wg-<id>` selectors never do).
 export function serviceTemplateFactory() {
     return SERVICE_TEMPLATES[lbMode()] || SERVICE_TEMPLATES.dedicated;
 }
