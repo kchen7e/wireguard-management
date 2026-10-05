@@ -28,3 +28,7 @@ CREATE TABLE IF NOT EXISTS clients (
 
 CREATE INDEX IF NOT EXISTS idx_clients_instance_id ON clients(instance_id);
 CREATE INDEX IF NOT EXISTS idx_clients_public_key ON clients(public_key);
+
+-- Every instance listens on its own port so router port-forwarding rules do not
+-- collide; the allocator in lib/port-pool.js relies on this being enforced.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_instances_server_listen_port ON instances(server_listen_port);

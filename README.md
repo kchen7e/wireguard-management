@@ -53,6 +53,7 @@ instance on a shared IP could not be allocated the IP.
 | `K8S_CONFIG_DIR`          | no       | `./config`                              | Directory where generated manifests are written                             |
 | `SHARED_LOAD_BALANCER_IP` | no       | —                                       | Enables shared load-balancer mode when set to a valid IPv4                  |
 | `WG_IMAGE`                | no       | `docker.storm7e.de/wireguard-go:latest` | WireGuard container image                                                   |
+| `WG_PORT_BASE`            | no       | `51820`                                 | First port the per-instance listen-port allocator considers                 |
 | `KUBECTL_BIN`             | no       | `kubectl`                               | kubectl binary to invoke                                                    |
 | `KUBECONFIG`              | no       | `~/.kube/config`                        | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
 
@@ -219,6 +220,10 @@ Notes:
   instances. See [Deployment topology](#deployment-topology).
 - In both modes the client endpoint is `<server_endpoint>:<server_listen_port>`,
   so the port is what distinguishes instances at the edge.
+- Each instance is assigned the first free port at or above `WG_PORT_BASE`
+  (default `51820`), so router port-forwarding rules never collide. The next port
+  is previewed in the create dialog and shown as `Host Port` on the instance
+  card.
 
 ### 7. Router + DNS
 

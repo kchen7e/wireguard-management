@@ -6,6 +6,7 @@ import { isValidServerCidr } from '../../util/ip.js';
 import { isValidInstanceName } from '../../util/name.js';
 import { lbMode } from '../lib/templates.js';
 import { nextAvailableLoadBalancerIp } from '../lib/lb-pool.js';
+import { nextAvailablePort } from '../lib/port-pool.js';
 
 export async function GET() {
     try {
@@ -42,11 +43,15 @@ export async function POST(request) {
 
         const shared = lbMode() === 'shared';
 
-        const listenPort = await nextAvailablePort();
+        const reserved = await query('SELECT load_balancer_ip, server_listen_port FROM instances');
+
+        const listenPort = nextAvailablePort(reserved.rows.map((row) => row.server_listen_port));
+        if (listenPort === null) {
+            return NextResponse.json({ error: 'No free WireGuard port available' }, { status: 409 });
+        }
 
         let loadBalancerIp = null;
         if (!shared) {
-            const reserved = await query('SELECT load_balancer_ip FROM instances WHERE load_balancer_ip IS NOT NULL');
             loadBalancerIp = nextAvailableLoadBalancerIp(reserved.rows.map((row) => row.load_balancer_ip));
         }
 
@@ -83,9 +88,4 @@ export async function POST(request) {
         console.error('Error creating instance:', error);
         return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 });
     }
-}
-
-async function nextAvailablePort() {
-    const result = await query('SELECT COALESCE(MAX(server_listen_port), 0) AS max_port FROM instances');
-    return Math.max(Number(result.rows[0].max_port) + 1, 51820);
 }
