@@ -28,6 +28,9 @@
 .DS_Store
 *.pem
 
+# local agent worktrees
+/.kilo/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -93,7 +93,10 @@ docker compose -f devops/docker-compose.yaml up -d
 
 - runs rootless as `${APP_UID:-1044}:${APP_GID:-100}` (set both in `.env` to
   match the host user that owns the bind mounts)
-- mounts `./config` -> `/app/config` (generated manifests)
+- bundles `config/metallb.yaml` into the image (the MetalLB pool the server
+  reads to auto-assign IPs)
+- mounts `./config/instances` -> `/app/config/instances`, so the generated
+  `wg-<id>.yaml` manifests are written back to the host
 - mounts `${KUBECONFIG_PATH:-./kubeconfig}` -> `/etc/wireguard/kubeconfig:ro`
 - reads `.env` for `DATABASE_URL` and other variables
 - exposes port 3000
@@ -113,7 +116,7 @@ to a k3s cluster via `kubectl`.
 ### 1. Create the namespace
 
 ```bash
-kubectl apply -f config/namespace.yaml
+kubectl create namespace wireguard
 ```
 
 All WireGuard resources live in the `wireguard` namespace (override with the
@@ -136,7 +139,17 @@ kubectl apply -f config/metallb.yaml
 ```
 
 Edit `config/metallb.yaml` first: `addresses` must be a free block inside your
-LAN subnet and outside your DHCP range.
+LAN subnet and outside your DHCP range. The same file is bundled into the app
+image, where the server reads it to auto-assign each instance's load-balancer
+IP — keep the two in sync.
+
+Because the file is baked in, changing the pool normally requires rebuilding the
+image. To override it without a rebuild, mount your own copy read-only:
+
+```yaml
+volumes:
+    - ../config/metallb.yaml:/app/config/metallb.yaml:ro
+```
 
 ### 4. Disable k3s built-in service LB
 

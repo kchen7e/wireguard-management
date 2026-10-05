@@ -1,8 +1,10 @@
 .git
+.kilo
 .gitignore
 node_modules
 .next
 data
+config/instances
 .env
 .env.*
 .dockerignore

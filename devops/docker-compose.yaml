@@ -14,7 +14,7 @@ services:
         ports:
             - '3000:3000'
         volumes:
-            - ../config:/app/config
+            - ../config/instances:/app/config/instances
             - ${KUBECONFIG_PATH:-../kubeconfig}:/etc/wireguard/kubeconfig:ro
         networks:
             - wireguard_management_net

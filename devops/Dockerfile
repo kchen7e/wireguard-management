@@ -2,14 +2,14 @@
 
 FROM node:24-slim AS deps
 WORKDIR /app
-RUN npm install -g pnpm@12
+RUN npm install -g npm@12 pnpm@12 --no-update-notifier
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 FROM node:24-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm install -g pnpm@12
+RUN npm install -g npm@12 pnpm@12 --no-update-notifier
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
@@ -26,12 +26,17 @@ RUN apt-get update \
     && chmod +x /usr/local/bin/kubectl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g npm@12 pnpm@12 --no-update-notifier
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+RUN pnpm install --prod --frozen-lockfile
+
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
 COPY src/app/api/lib/templates ./src/app/api/lib/templates
+COPY config/metallb.yaml /app/config/metallb.yaml
 
 RUN mkdir -p /etc/wireguard /app/config \
     && chown -R node:node /app /etc/wireguard
