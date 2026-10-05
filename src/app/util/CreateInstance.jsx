@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Modal, Form, Input, message } from 'antd';
+import { Button, Col, Modal, Form, Input, Row, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { isValidServerCidr } from './ip.js';
 import { isValidInstanceName } from './name.js';
@@ -11,7 +11,7 @@ export default function CreateInstance({ intl }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [lbMode, setLbMode] = useState(null);
-    const [nextLbIp, setNextLbIp] = useState(null);
+    const [loadBalancerIp, setLoadBalancerIp] = useState(null);
     const [nextListenPort, setNextListenPort] = useState(null);
     const [form] = Form.useForm();
 
@@ -22,7 +22,7 @@ export default function CreateInstance({ intl }) {
             .then((payload) => {
                 if (cancelled) return;
                 setLbMode(payload.data.mode);
-                setNextLbIp(payload.data.next_load_balancer_ip);
+                setLoadBalancerIp(payload.data.load_balancer_ip);
                 setNextListenPort(payload.data.next_listen_port);
             })
             .catch((error) => {
@@ -53,7 +53,13 @@ export default function CreateInstance({ intl }) {
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>
                 {intl['create_new_instance']}
             </Button>
-            <Modal title={intl['create_new_instance']} open={open} onCancel={() => setOpen(false)} footer={null}>
+            <Modal
+                title={intl['create_new_instance']}
+                open={open}
+                onCancel={() => setOpen(false)}
+                footer={null}
+                style={{ top: 'clamp(1rem, 8vh, 4.5rem)' }}
+            >
                 <Form form={form} onFinish={handleCreate} layout="vertical">
                     <Form.Item
                         label={intl['instance_name']}
@@ -106,19 +112,35 @@ export default function CreateInstance({ intl }) {
                     >
                         <Input placeholder="wg.storm7e.de" />
                     </Form.Item>
-                    {lbMode === 'dedicated' && nextLbIp && (
-                        <Form.Item label={intl['load_balancer_ip']} extra={intl['load_balancer_ip_auto']}>
-                            <Input value={nextLbIp} disabled />
-                        </Form.Item>
-                    )}
-                    {nextListenPort && (
-                        <Form.Item label={intl['server_listen_port']} extra={intl['listen_port_auto']}>
-                            <Input value={nextListenPort} disabled />
-                        </Form.Item>
-                    )}
                     <Form.Item label={intl['dns']} name="dns">
                         <Input placeholder="1.1.1.1" />
                     </Form.Item>
+                    {(loadBalancerIp || nextListenPort) && (
+                        <Row gutter={16}>
+                            {loadBalancerIp && (
+                                <Col xs={24} sm={nextListenPort ? 12 : 24}>
+                                    <Form.Item
+                                        label={intl['load_balancer_ip']}
+                                        extra={
+                                            lbMode === 'shared'
+                                                ? intl['load_balancer_ip_shared']
+                                                : intl['auto_assigned']
+                                        }
+                                    >
+                                        <Input value={loadBalancerIp} disabled />
+                                    </Form.Item>
+                                </Col>
+                            )}
+                            {nextListenPort && (
+                                <Col xs={24} sm={loadBalancerIp ? 12 : 24}>
+                                    <Form.Item label={intl['server_listen_port']} extra={intl['auto_assigned']}>
+                                        <Input value={nextListenPort} disabled />
+                                    </Form.Item>
+                                </Col>
+                            )}
+                        </Row>
+                    )}
+
                     <Form.Item>
                         <Button type="primary" htmlType="submit" loading={loading}>
                             {intl['create_new_instance']}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../db.js';
-import { lbMode } from '../../lib/templates.js';
+import { lbMode, sharedLoadBalancerIp } from '../../lib/templates.js';
 import { nextAvailableLoadBalancerIp } from '../../lib/lb-pool.js';
 import { nextAvailablePort } from '../../lib/port-pool.js';
 
@@ -10,17 +10,18 @@ export async function GET() {
 
         const reserved = await query('SELECT load_balancer_ip, server_listen_port FROM instances');
 
-        let nextLoadBalancerIp = null;
-        if (!shared) {
-            nextLoadBalancerIp = nextAvailableLoadBalancerIp(reserved.rows.map((row) => row.load_balancer_ip));
-        }
+        // Shared mode pins one global IP for every instance, so there is no
+        // "next" IP to hand out - preview that shared IP instead.
+        const loadBalancerIp = shared
+            ? sharedLoadBalancerIp()
+            : nextAvailableLoadBalancerIp(reserved.rows.map((row) => row.load_balancer_ip));
 
         const nextListenPort = nextAvailablePort(reserved.rows.map((row) => row.server_listen_port));
 
         return NextResponse.json({
             data: {
                 mode: shared ? 'shared' : 'dedicated',
-                next_load_balancer_ip: nextLoadBalancerIp,
+                load_balancer_ip: loadBalancerIp,
                 next_listen_port: nextListenPort,
             },
         });

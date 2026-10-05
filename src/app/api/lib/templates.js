@@ -65,9 +65,15 @@ const SERVICE_TEMPLATES = {
     shared: sharedServiceTemplate,
 };
 
-export function lbMode() {
+// The shared IP is a single global value: when it is a valid IPv4 address every
+// instance Service pins it and MetalLB merges their distinct UDP ports onto it.
+export function sharedLoadBalancerIp() {
     const sharedIp = process.env[SHARED_LB_IP_ENV];
-    return sharedIp && isValidIpv4(sharedIp) ? 'shared' : 'dedicated';
+    return sharedIp && isValidIpv4(sharedIp) ? sharedIp : null;
+}
+
+export function lbMode() {
+    return sharedLoadBalancerIp() ? 'shared' : 'dedicated';
 }
 
 // `externalTrafficPolicy` is fixed per mode in the Service templates:
