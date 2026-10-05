@@ -54,5 +54,9 @@ export const themeConfig = {
         Switch: {
             colorPrimary: '#D6336C',
         },
+        Tooltip: {
+            colorBgSpotlight: '#A61E4D',
+            borderRadius: 10,
+        },
     },
 };

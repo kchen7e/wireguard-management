@@ -387,7 +387,6 @@ body {
     }
 
     .wg-card .wg-kv,
-    .wg-card .ant-collapse,
     .wg-card-head .wg-card-sub,
     .wg-card-head .wg-tag {
         display: none;
@@ -415,11 +414,6 @@ body {
 
     .wg-pill {
         padding: 6px 10px;
-    }
-
-    /* A QR can't be scanned by the device showing it; "Config" is the mobile path. */
-    .wg-pill.qr-pill {
-        display: none;
     }
 
     .wg-panel {

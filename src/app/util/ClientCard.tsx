@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { App, Button, Collapse, Form, Image, Input, Modal, Popconfirm } from 'antd';
+import { App, Button, Form, Image, Input, Modal, Popconfirm, Tooltip } from 'antd';
 import {
     CopyOutlined,
     DeleteOutlined,
@@ -222,38 +222,32 @@ export default function ClientCard({
                 </div>
             </div>
 
-            <Collapse
-                ghost
-                expandIconPlacement="start"
-                style={{ marginTop: -12, marginBottom: '1.5rem' }}
-                styles={{
-                    header: { paddingLeft: 0, paddingTop: 0, paddingBottom: 0 },
-                    body: { paddingTop: 0, paddingLeft: 0, paddingRight: 0 },
-                }}
-                items={[
-                    {
-                        key: client.public_key,
-                        label: intl['pub_key'],
-                        children: <p style={{ wordWrap: 'break-word', margin: 0 }}>{client.public_key}</p>,
-                    },
-                ]}
-            />
-
             <div className="wg-actions">
-                <button type="button" className="wg-pill" onClick={downloadConfig}>
-                    <FileTextOutlined /> <span className="wg-pill-label">{intl['download_config'] || 'Config'}</span>
-                </button>
-                <button
-                    type="button"
-                    className="wg-pill qr-pill"
-                    onClick={() => setShowQr(true)}
-                    title={intl['show_qr'] || 'Show QR'}
-                >
-                    <QrcodeOutlined /> <span className="wg-pill-label">{intl['show_qr'] || 'QR'}</span>
-                </button>
-                <button type="button" className="wg-pill">
-                    <MailOutlined /> <span className="wg-pill-label">Email</span>
-                </button>
+                <Tooltip title={intl['download_config'] || 'Download Config'}>
+                    <button
+                        type="button"
+                        className="wg-icon-btn"
+                        onClick={downloadConfig}
+                        aria-label={intl['download_config'] || 'Download Config'}
+                    >
+                        <FileTextOutlined />
+                    </button>
+                </Tooltip>
+                <Tooltip title={intl['show_qr'] || 'Show QR Code'}>
+                    <button
+                        type="button"
+                        className="wg-icon-btn"
+                        onClick={() => setShowQr(true)}
+                        aria-label={intl['show_qr'] || 'Show QR Code'}
+                    >
+                        <QrcodeOutlined />
+                    </button>
+                </Tooltip>
+                <Tooltip title="Email">
+                    <button type="button" className="wg-icon-btn" aria-label="Email">
+                        <MailOutlined />
+                    </button>
+                </Tooltip>
             </div>
 
             <Modal
