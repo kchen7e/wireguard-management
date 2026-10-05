@@ -3,8 +3,10 @@ import { query } from '../../db';
 import { lbMode, sharedLoadBalancerIp } from '../../lib/templates';
 import { nextAvailableLoadBalancerIp } from '../../lib/lb-pool';
 import { nextAvailablePort } from '../../lib/port-pool';
+import { logFailure } from '../../lib/logger';
+import { withLogging } from '../../lib/withLogging';
 
-export async function GET() {
+export const GET = withLogging(async (request: Request) => {
     try {
         const shared = lbMode() === 'shared';
 
@@ -26,7 +28,7 @@ export async function GET() {
             },
         });
     } catch (error) {
-        console.error('Error resolving next allocation:', error);
+        logFailure('resolve next allocation', error);
         return NextResponse.json({ error: 'Failed to resolve next allocation' }, { status: 500 });
     }
-}
+});

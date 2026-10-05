@@ -5,6 +5,7 @@ import { atomicWriteFile } from './fs';
 import { runKubectl } from './kubectl';
 import { buildInstanceManifest } from './manifest';
 import { instanceManifestFile, namespace } from './paths';
+import { logger } from './logger';
 
 export const SAFE_INSTANCE_FIELDS = `
     id,
@@ -153,10 +154,12 @@ export async function reloadWireGuardContainer(
     instance: Instance,
     clients: Client[]
 ): Promise<{ success: boolean; reloaded: boolean; manifestPath: string }> {
+    logger.info('Reloading WireGuard instance', { instanceId: instance.id, clients: clients.length });
     const filePath = instanceManifestFile(instance);
     await atomicWriteFile(filePath, buildInstanceManifest(instance, clients));
     await runKubectl(['apply', '-f', filePath]);
     await runKubectl(['rollout', 'restart', '-n', namespace(), `deployment/wg-${instance.id}`]);
+    logger.info('WireGuard instance reloaded', { instanceId: instance.id });
     return { success: true, reloaded: true, manifestPath: filePath };
 }
 

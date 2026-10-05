@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { logger } from './lib/logger';
 
 export interface QueryResultRows {
     rows: any[];
@@ -49,7 +50,7 @@ async function ensureSchemaUnsafe(): Promise<void> {
     try {
         await activePool.query(`ALTER TABLE instances ADD COLUMN IF NOT EXISTS load_balancer_ip TEXT`);
     } catch (error) {
-        console.warn(`Skipping migration (${errorMessage(error)})`);
+        logger.warn('Skipping migration', { error: errorMessage(error) });
     }
 
     try {
@@ -60,7 +61,7 @@ async function ensureSchemaUnsafe(): Promise<void> {
             await activePool.query(`ALTER TABLE instances RENAME COLUMN server_address TO server_vpn_ip`);
         }
     } catch (error) {
-        console.warn(`Skipping migration (${errorMessage(error)})`);
+        logger.warn('Skipping migration', { error: errorMessage(error) });
     }
 
     await activePool.query(`
@@ -88,7 +89,7 @@ async function ensureSchemaUnsafe(): Promise<void> {
         try {
             await activePool.query(statement);
         } catch (error) {
-            console.warn(`Skipping index creation (${errorMessage(error)})`);
+            logger.warn('Skipping index creation', { error: errorMessage(error) });
         }
     }
 }

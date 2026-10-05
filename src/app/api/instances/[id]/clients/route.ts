@@ -3,8 +3,10 @@ import { query } from '../../../db';
 import { generateKeyPair, generatePSK, reloadInstanceById } from '../../../lib/instance';
 import { isIpInSubnet, parseCidr } from '../../../../util/ip';
 import { isValidDescription } from '../../../../util/name';
+import { logFailure } from '../../../lib/logger';
+import { withLogging } from '../../../lib/withLogging';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const instanceResult = await query('SELECT id FROM instances WHERE id = $1', [id]);
@@ -18,12 +20,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         );
         return NextResponse.json({ data: result.rows });
     } catch (error) {
-        console.error('Error fetching clients:', error);
+        logFailure('fetch clients', error);
         return NextResponse.json({ error: 'Failed to fetch clients' }, { status: 500 });
     }
-}
+});
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const POST = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const instanceResult = await query('SELECT id, server_vpn_ip FROM instances WHERE id = $1', [id]);
@@ -80,7 +82,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         return NextResponse.json({ data: result.rows[0], reloaded }, { status: 201 });
     } catch (error) {
-        console.error('Error creating client:', error);
+        logFailure('create client', error);
         return NextResponse.json({ error: 'Failed to create client' }, { status: 500 });
     }
-}
+});

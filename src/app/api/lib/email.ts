@@ -3,6 +3,7 @@ import path from 'path';
 import handlebars from 'handlebars';
 import nodemailer from 'nodemailer';
 import { TEMPLATES_DIR } from './templates';
+import { logger } from './logger';
 
 const EMAILS_DIR = path.join(TEMPLATES_DIR, 'email');
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,12 +81,18 @@ export async function sendClientConfigEmail(opts: {
 
     const { subject, html, text } = renderEmailContent(opts.data, opts.lang);
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: opts.recipient,
-        subject,
-        html,
-        text,
-        attachments: [{ filename: opts.filename, content: opts.config }],
-    });
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: opts.recipient,
+            subject,
+            html,
+            text,
+            attachments: [{ filename: opts.filename, content: opts.config }],
+        });
+        logger.debug('Email sent', { recipient: opts.recipient });
+    } catch (error) {
+        logger.debug('Email send failed', { recipient: opts.recipient, error });
+        throw error;
+    }
 }

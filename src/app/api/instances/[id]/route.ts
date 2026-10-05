@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../db';
 import { SAFE_INSTANCE_FIELDS } from '../../lib/instance';
+import { logFailure } from '../../lib/logger';
+import { withLogging } from '../../lib/withLogging';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const result = await query(`SELECT ${SAFE_INSTANCE_FIELDS} FROM instances WHERE id = $1`, [id]);
@@ -11,7 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }
         return NextResponse.json({ data: result.rows[0] });
     } catch (error) {
-        console.error('Error fetching instance:', error);
+        logFailure('fetch instance', error);
         return NextResponse.json({ error: 'Failed to fetch instance' }, { status: 500 });
     }
-}
+});

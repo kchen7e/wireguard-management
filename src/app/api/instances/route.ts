@@ -8,18 +8,20 @@ import { lbMode } from '../lib/templates';
 import { nextAvailableLoadBalancerIp } from '../lib/lb-pool';
 import { nextAvailablePort } from '../lib/port-pool';
 import { errorMessage } from '../../util/errors';
+import { logFailure } from '../lib/logger';
+import { withLogging } from '../lib/withLogging';
 
-export async function GET() {
+export const GET = withLogging(async (request: Request) => {
     try {
         const result = await query(`SELECT ${SAFE_INSTANCE_FIELDS} FROM instances ORDER BY id`);
         return NextResponse.json({ data: result.rows });
     } catch (error) {
-        console.error('Error fetching instances:', error);
+        logFailure('fetch instances', error);
         return NextResponse.json({ error: 'Failed to fetch instances' }, { status: 500 });
     }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withLogging(async (request: Request) => {
     try {
         const body = await request.json();
         const { container_name, server_vpn_ip, server_endpoint, dns, interface_name = 'wg0' } = body;
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ data: result.rows[0], reconciled, reconcileError }, { status: 201 });
     } catch (error) {
-        console.error('Error creating instance:', error);
+        logFailure('create instance', error);
         return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 });
     }
-}
+});

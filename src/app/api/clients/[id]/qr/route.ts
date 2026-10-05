@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import QRCode from 'qrcode';
 import { getInstanceById, getClientById } from '../../../lib/instance';
 import { buildClientConfig } from '../../../lib/config';
+import { logFailure } from '../../../lib/logger';
+import { withLogging } from '../../../lib/withLogging';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const client = await getClientById(id);
@@ -27,7 +29,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             },
         });
     } catch (error) {
-        console.error('Error generating QR code:', error);
+        logFailure('generate QR code', error);
         return NextResponse.json({ error: 'Failed to generate QR code' }, { status: 500 });
     }
-}
+});

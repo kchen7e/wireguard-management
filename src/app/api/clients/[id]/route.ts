@@ -3,8 +3,10 @@ import { query } from '../../db';
 import { getClientById, reloadInstanceById } from '../../lib/instance';
 import { isValidDescription } from '../../../util/name';
 import { errorMessage } from '../../../util/errors';
+import { logger, logFailure } from '../../lib/logger';
+import { withLogging } from '../../lib/withLogging';
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const client = await getClientById(id);
@@ -17,7 +19,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         try {
             await reloadInstanceById(client.instance_id);
         } catch (error) {
-            console.error('Error reloading WireGuard after client delete:', error);
+            logger.warn('Client deleted but WireGuard reload failed', { error: errorMessage(error) });
             return NextResponse.json(
                 { error: `Client deleted but WireGuard reload failed: ${errorMessage(error)}` },
                 { status: 500 }
@@ -26,12 +28,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         return NextResponse.json({ success: true, reloaded: true });
     } catch (error) {
-        console.error('Error deleting client:', error);
+        logFailure('delete client', error);
         return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
     }
-}
+});
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const PATCH = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const client = await getClientById(id);
@@ -58,7 +60,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         try {
             await reloadInstanceById(client.instance_id);
         } catch (error) {
-            console.error('Error reloading WireGuard after client update:', error);
+            logger.warn('Client updated but WireGuard reload failed', { error: errorMessage(error) });
             return NextResponse.json(
                 { error: `Client updated but WireGuard reload failed: ${errorMessage(error)}` },
                 { status: 500 }
@@ -67,7 +69,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
         return NextResponse.json({ data: result.rows[0], reloaded: true });
     } catch (error) {
-        console.error('Error updating client:', error);
+        logFailure('update client', error);
         return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
     }
-}
+});

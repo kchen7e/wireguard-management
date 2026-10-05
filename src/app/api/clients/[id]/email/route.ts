@@ -9,6 +9,8 @@ import {
     smtpConfigured,
 } from '../../../lib/email';
 import type { EmailTemplateData } from '../../../lib/email';
+import { logger, logFailure } from '../../../lib/logger';
+import { withLogging } from '../../../lib/withLogging';
 
 function endpointOf(instance: { server_endpoint: string; server_listen_port: number }): string {
     return `${instance.server_endpoint}:${instance.server_listen_port}`;
@@ -25,7 +27,7 @@ function emailData(
     };
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const client = await getClientById(id);
@@ -42,12 +44,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const { subject, text } = renderEmailContent(emailData(client, instance), lang);
         return NextResponse.json({ subject, body: text });
     } catch (error) {
-        console.error('Error rendering email content:', error);
+        logFailure('render email content', error);
         return NextResponse.json({ error: 'Failed to render email content' }, { status: 500 });
     }
-}
+});
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const POST = withLogging(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
     try {
         const client = await getClientById(id);
@@ -74,7 +76,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
 
         if (!smtpConfigured()) {
-            console.error('Email requested but SMTP is not configured (SMTP_HOST / EMAIL_FROM)');
+            logger.warn('Email requested but SMTP is not configured (SMTP_HOST / EMAIL_FROM)');
             return NextResponse.json({ error: 'Email is not configured on this server' }, { status: 503 });
         }
 
@@ -92,7 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Error sending client config email:', error);
+        logFailure('send client config email', error);
         return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
     }
-}
+});

@@ -62,6 +62,26 @@ instance on a shared IP could not be allocated the IP.
 | `SMTP_USER`               | no       | —                                       | SMTP username (omit for an unauthenticated relay)                           |
 | `SMTP_PASS`               | no       | —                                       | SMTP password                                                               |
 | `EMAIL_FROM`              | no       | —                                       | From address used for outgoing emails                                       |
+| `LOG_LEVEL`               | no       | `info`                                  | Minimum level to emit: `debug`, `info`, `warn`, `error`, `critical`         |
+
+## Logging
+
+Every REST request is logged through a shared route middleware with the HTTP
+method, path, status and duration, plus a per-request `requestId` that is also
+attached to any logs emitted while handling it. Logs are human-readable during
+`pnpm dev` and structured JSON when `NODE_ENV=production`.
+
+Levels follow this convention:
+
+| Level      | Use                                                                                                      |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| `info`     | Main workflow: request handling and top-level orchestration (reconcile, reload)                          |
+| `debug`    | Detailed tool internals: raw `kubectl` invocations/stderr, file writes, SMTP failures, full stack traces |
+| `warn`     | Non-critical issues that may bite later (skipped migrations, stale-manifest cleanup failures)            |
+| `error`    | Failed requests (4xx/5xx) and their concise reason                                                       |
+| `critical` | Unhandled exceptions in a route handler                                                                  |
+
+Request/response bodies and WireGuard key material are never logged.
 
 ## Local development
 
