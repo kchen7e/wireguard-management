@@ -35,11 +35,16 @@ RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
+# Template files are read from disk at runtime, so they must ship with the app.
 COPY src/app/api/lib/templates ./src/app/api/lib/templates
 COPY config/metallb.yaml /app/config/metallb.yaml
 
+# Files copied from the build context keep the host's mode bits, and compose runs
+# the container as an arbitrary UID, so make the runtime-read templates readable
+# (a+rX adds execute to directories only, never to the template files).
 RUN mkdir -p /etc/wireguard /app/config \
-    && chown -R node:node /app /etc/wireguard
+    && chown -R node:node /app /etc/wireguard \
+    && chmod -R a+rX /app/src/app/api/lib/templates /app/config
 
 USER node
 

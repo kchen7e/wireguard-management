@@ -247,6 +247,13 @@ body {
     margin-top: 4px;
 }
 
+/* Email popover: the two actions stack vertically next to the mail icon */
+.wg-email-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .wg-pill {
     display: inline-flex;
     align-items: center;

@@ -56,6 +56,12 @@ instance on a shared IP could not be allocated the IP.
 | `WG_PORT_BASE`            | no       | `51820`                                 | First port the per-instance listen-port allocator considers                 |
 | `KUBECTL_BIN`             | no       | `kubectl`                               | kubectl binary to invoke                                                    |
 | `KUBECONFIG`              | no       | `~/.kube/config`                        | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
+| `SMTP_HOST`               | no       | —                                       | SMTP server host for "Send by server" emails                                |
+| `SMTP_PORT`               | no       | `587`                                   | SMTP port                                                                   |
+| `SMTP_SECURE`             | no       | `false`                                 | `true` for implicit TLS (465); `false` upgrades with STARTTLS (587)         |
+| `SMTP_USER`               | no       | —                                       | SMTP username (omit for an unauthenticated relay)                           |
+| `SMTP_PASS`               | no       | —                                       | SMTP password                                                               |
+| `EMAIL_FROM`              | no       | —                                       | From address used for outgoing emails                                       |
 
 ## Local development
 
@@ -175,9 +181,9 @@ instead of `<pending>`.
 ### 6. Load balancer mode (dedicated vs shared IP)
 
 Manifests are rendered from Jinja2-style templates in
-`src/app/api/lib/templates/*.tpl` (`{{ var }}` and `{% if %}` blocks). The
+`src/app/api/lib/templates/k8s/*.tpl` (`{{ var }}` and `{% if %}` blocks). The
 Service template is chosen by `lbMode()` / `serviceTemplateFactory()` in
-`src/app/api/lib/templates.js`: shared mode is enabled implicitly when
+`src/app/api/lib/templates.ts`: shared mode is enabled implicitly when
 `SHARED_LOAD_BALANCER_IP` is set to a valid IPv4 address.
 
 - `dedicated` (default): each instance gets its own MetalLB IP.

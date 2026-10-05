@@ -3,22 +3,22 @@ import path from 'path';
 import { isValidIpv4 } from '../../util/ip';
 import type { LbMode } from '../../types';
 
-const TEMPLATES_DIR = path.join(process.cwd(), 'src', 'app', 'api', 'lib', 'templates');
+export const TEMPLATES_DIR = path.join(process.cwd(), 'src', 'app', 'api', 'lib', 'templates');
 
 export type TemplateData = Record<string, unknown>;
 
-function readTemplate(name: string): string {
-    return fs.readFileSync(path.join(TEMPLATES_DIR, name), 'utf8');
+function readTemplate(...parts: string[]): string {
+    return fs.readFileSync(path.join(TEMPLATES_DIR, ...parts), 'utf8');
 }
 
 const TEMPLATES = {
-    secret: readTemplate('secret.yaml.tpl'),
-    deployment: readTemplate('deployment.yaml.tpl'),
-    'service-dedicated': readTemplate('service-dedicated.yaml.tpl'),
-    'service-shared': readTemplate('service-shared.yaml.tpl'),
-    'server-conf': readTemplate('server.conf.tpl'),
-    'client-conf': readTemplate('client.conf.tpl'),
-    'peer-conf': readTemplate('peer.conf.tpl'),
+    secret: readTemplate('k8s', 'secret.yaml.tpl'),
+    deployment: readTemplate('k8s', 'deployment.yaml.tpl'),
+    'service-dedicated': readTemplate('k8s', 'service-dedicated.yaml.tpl'),
+    'service-shared': readTemplate('k8s', 'service-shared.yaml.tpl'),
+    'server-conf': readTemplate('wg', 'server.conf.tpl'),
+    'client-conf': readTemplate('wg', 'client.conf.tpl'),
+    'peer-conf': readTemplate('wg', 'peer.conf.tpl'),
 };
 
 const VARIABLE_RE = /\{\{\s*([\w.]+)\s*\}\}/g;

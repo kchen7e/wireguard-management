@@ -1,17 +1,21 @@
 import { useRef, useState } from 'react';
-import { App, Button, Form, Image, Input, Modal, Popconfirm, Tooltip } from 'antd';
+import { Alert, App, Button, Form, Image, Input, Modal, Popconfirm, Popover, Tooltip } from 'antd';
 import {
+    CloseOutlined,
+    CloudUploadOutlined,
     CopyOutlined,
     DeleteOutlined,
     EditOutlined,
     FileTextOutlined,
     MailOutlined,
     QrcodeOutlined,
+    SendOutlined,
 } from '@ant-design/icons';
 import { isValidDescription } from './name';
 import { formatLastSeen } from './time';
 import { WG_HANDSHAKE_INTERVAL_SECONDS } from './constants';
 import { errorMessage } from './errors';
+import { apiRequest } from './api';
 import { useApp } from '../AppContext';
 import type { Messages } from '../intl';
 import type { ClientWithStatus } from '../types';
@@ -68,11 +72,18 @@ export default function ClientCard({
 }) {
     const { deleteClient, updateClient, locale } = useApp();
     const { message } = App.useApp();
+    const emailLang = locale.startsWith('zh') ? 'zh' : 'en';
     const [showQr, setShowQr] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [emailOpen, setEmailOpen] = useState(false);
+    const [sendOpen, setSendOpen] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [sendFailed, setSendFailed] = useState(false);
+    const [emailError, setEmailError] = useState('');
     const [form] = Form.useForm();
+    const [emailForm] = Form.useForm();
     const qrBoxRef = useRef<HTMLDivElement>(null);
 
     // Trigger the download in place. window.open() pointed a new tab at the file, which flashed a
@@ -148,6 +159,52 @@ export default function ClientCard({
             message.error(errorMessage(error));
         } finally {
             setSaving(false);
+        }
+    };
+
+    const openSendByMe = async () => {
+        try {
+            const data = await apiRequest<{ subject: string; body: string }>(
+                `/api/clients/${client.id}/email?lang=${emailLang}`
+            );
+            const mailto = `mailto:?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(data.body)}`;
+            window.location.href = mailto;
+        } catch (error) {
+            console.error('Error preparing email:', error);
+            message.error(errorMessage(error));
+        }
+    };
+
+    const closeEmailModal = () => {
+        setSendOpen(false);
+        setEmailError('');
+        setSendFailed(false);
+        emailForm.resetFields();
+    };
+
+    const handleSendEmail = async (values: { recipient: string }) => {
+        setEmailError('');
+        setSendFailed(false);
+        setSending(true);
+        try {
+            await apiRequest(`/api/clients/${client.id}/email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient: values.recipient.trim(), lang: emailLang }),
+            });
+            message.success(intl['email_success'] || 'Email sent');
+            setSendOpen(false);
+            emailForm.resetFields();
+        } catch (error) {
+            console.error('Error sending email:', error);
+            setEmailError(
+                intl['email_error_generic'] ||
+                    'Something went wrong sending the email. Please contact the administrator.'
+            );
+            setSendFailed(true);
+            setTimeout(() => setSendFailed(false), 1600);
+        } finally {
+            setSending(false);
         }
     };
 
@@ -243,11 +300,42 @@ export default function ClientCard({
                         <QrcodeOutlined />
                     </button>
                 </Tooltip>
-                <Tooltip title="Email">
-                    <button type="button" className="wg-icon-btn" aria-label="Email">
-                        <MailOutlined />
-                    </button>
-                </Tooltip>
+                <Popover
+                    trigger="click"
+                    open={emailOpen}
+                    onOpenChange={setEmailOpen}
+                    placement="topLeft"
+                    content={
+                        <div className="wg-email-menu">
+                            <button
+                                type="button"
+                                className="wg-pill"
+                                onClick={() => {
+                                    setEmailOpen(false);
+                                    setSendOpen(true);
+                                }}
+                            >
+                                <CloudUploadOutlined /> {intl['email_send_by_server'] || 'Send by server'}
+                            </button>
+                            <button
+                                type="button"
+                                className="wg-pill"
+                                onClick={() => {
+                                    setEmailOpen(false);
+                                    void openSendByMe();
+                                }}
+                            >
+                                <SendOutlined /> {intl['email_send_by_me'] || 'Send by me'}
+                            </button>
+                        </div>
+                    }
+                >
+                    <Tooltip title="Email">
+                        <button type="button" className="wg-icon-btn" aria-label="Email">
+                            <MailOutlined />
+                        </button>
+                    </Tooltip>
+                </Popover>
             </div>
 
             <Modal
@@ -281,6 +369,41 @@ export default function ClientCard({
                         </button>
                     </div>
                 </div>
+            </Modal>
+
+            <Modal
+                title={intl['email_title'] || 'Email Config'}
+                open={sendOpen}
+                onCancel={closeEmailModal}
+                footer={null}
+                width={360}
+                centered
+            >
+                {emailError && <Alert type="error" showIcon title={emailError} style={{ marginBottom: 12 }} />}
+                <Form form={emailForm} layout="vertical" onFinish={handleSendEmail}>
+                    <Form.Item
+                        label={intl['email_recipient'] || 'Recipient email'}
+                        name="recipient"
+                        rules={[
+                            {
+                                required: true,
+                                type: 'email',
+                                message: intl['email_invalid'] || 'Please enter a valid email address',
+                            },
+                        ]}
+                    >
+                        <Input placeholder={intl['email_recipient_placeholder'] || 'name@example.com'} />
+                    </Form.Item>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={sending}
+                        danger={sendFailed}
+                        icon={sendFailed ? <CloseOutlined /> : undefined}
+                    >
+                        {intl['email_send'] || 'Send'}
+                    </Button>
+                </Form>
             </Modal>
 
             <Modal title={intl['edit'] || 'Edit'} open={editOpen} onCancel={() => setEditOpen(false)} footer={null}>
