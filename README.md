@@ -46,23 +46,34 @@ instance on a shared IP could not be allocated the IP.
 
 ## Configuration
 
-| Variable                  | Required | Default                                 | Description                                                                 |
-| ------------------------- | -------- | --------------------------------------- | --------------------------------------------------------------------------- |
-| `DATABASE_URL`            | yes      | —                                       | Postgres connection string                                                  |
-| `K8S_NAMESPACE`           | no       | `wireguard`                             | Kubernetes namespace                                                        |
-| `K8S_CONFIG_DIR`          | no       | `./config`                              | Directory where generated manifests are written                             |
-| `SHARED_LOAD_BALANCER_IP` | no       | —                                       | Enables shared load-balancer mode when set to a valid IPv4                  |
-| `WG_IMAGE`                | no       | `docker.storm7e.de/wireguard-go:latest` | WireGuard container image                                                   |
-| `WG_PORT_BASE`            | no       | `51820`                                 | First port the per-instance listen-port allocator considers                 |
-| `KUBECTL_BIN`             | no       | `kubectl`                               | kubectl binary to invoke                                                    |
-| `KUBECONFIG`              | no       | `~/.kube/config`                        | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
-| `SMTP_HOST`               | no       | —                                       | SMTP server host for "Send by server" emails                                |
-| `SMTP_PORT`               | no       | `587`                                   | SMTP port                                                                   |
-| `SMTP_SECURE`             | no       | `false`                                 | `true` for implicit TLS (465); `false` upgrades with STARTTLS (587)         |
-| `SMTP_USER`               | no       | —                                       | SMTP username (omit for an unauthenticated relay)                           |
-| `SMTP_PASS`               | no       | —                                       | SMTP password                                                               |
-| `EMAIL_FROM`              | no       | —                                       | From address used for outgoing emails                                       |
-| `LOG_LEVEL`               | no       | `info`                                  | Minimum level to emit: `debug`, `info`, `warn`, `error`, `critical`         |
+| Variable                  | Required | Default                        | Description                                                                 |
+| ------------------------- | -------- | ------------------------------ | --------------------------------------------------------------------------- |
+| `DATABASE_URL`            | yes      | —                              | Postgres connection string                                                  |
+| `K8S_NAMESPACE`           | no       | `wireguard`                    | Kubernetes namespace                                                        |
+| `K8S_CONFIG_DIR`          | no       | `./config`                     | Directory where generated manifests are written                             |
+| `SHARED_LOAD_BALANCER_IP` | no       | —                              | Enables shared load-balancer mode when set to a valid IPv4                  |
+| `WG_IMAGE`                | no       | `masipcat/wireguard-go:latest` | WireGuard container image                                                   |
+| `WG_PORT_BASE`            | no       | `51820`                        | First port the per-instance listen-port allocator considers                 |
+| `KUBECTL_BIN`             | no       | `kubectl`                      | kubectl binary to invoke                                                    |
+| `KUBECONFIG`              | no       | `~/.kube/config`               | kubeconfig path (set to `/etc/wireguard/kubeconfig` in the container image) |
+| `SMTP_HOST`               | no       | —                              | SMTP server host for "Send by server" emails                                |
+| `SMTP_PORT`               | no       | `587`                          | SMTP port                                                                   |
+| `SMTP_SECURE`             | no       | `false`                        | `true` for implicit TLS (465); `false` upgrades with STARTTLS (587)         |
+| `SMTP_USER`               | no       | —                              | SMTP username (omit for an unauthenticated relay)                           |
+| `SMTP_PASS`               | no       | —                              | SMTP password                                                               |
+| `EMAIL_FROM`              | no       | —                              | From address used for outgoing emails                                       |
+| `LOG_LEVEL`               | no       | `info`                         | Minimum level to emit: `debug`, `info`, `warn`, `error`, `critical`         |
+
+### Example values to replace
+
+The repository ships with placeholder values. Change these for your own setup:
+
+| Where                      | Placeholder                                     | Change to                                  |
+| -------------------------- | ----------------------------------------------- | ------------------------------------------ |
+| `config/metallb.yaml`      | `192.168.1.200-192.168.1.250`, interface `eth0` | A free range in your LAN and your NIC name |
+| `WG_IMAGE`                 | `masipcat/wireguard-go:latest`                  | Your own WireGuard image, if you have one  |
+| `SHARED_LOAD_BALANCER_IP`  | unset (dedicated mode)                          | The shared IP, to enable shared mode       |
+| instance `server_endpoint` | `vpn.example.com`                               | The public hostname that clients dial      |
 
 ## Logging
 
@@ -99,8 +110,7 @@ The image bundles the app and `kubectl`; it reads the kubeconfig from
 `/etc/wireguard/kubeconfig`.
 
 ```bash
-podman build --platform linux/amd64 -f devops/Dockerfile -t docker.storm7e.de/wireguard-management .
-podman push docker.storm7e.de/wireguard-management:latest
+podman build --platform linux/amd64 -f devops/Dockerfile -t wireguard-management:latest .
 ```
 
 Run the build from the repo root — the build context must be the repo root
@@ -108,10 +118,13 @@ Run the build from the repo root — the build context must be the repo root
 devops` first, or the context becomes `devops/` and the build fails/comes out
 empty.
 
+The image is built locally and used directly by Compose. To publish it to your
+own registry instead, tag and push it under that name and update the `image:`
+in `devops/docker-compose.yaml` to match.
+
 On the host:
 
 ```bash
-docker compose -f devops/docker-compose.yaml pull
 docker compose -f devops/docker-compose.yaml up -d
 ```
 

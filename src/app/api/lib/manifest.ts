@@ -3,7 +3,7 @@ import { secretTemplate, deploymentTemplate, serviceTemplateFactory } from './te
 import { namespace } from './paths';
 import type { Client, Instance } from '../../types';
 
-const DEFAULT_IMAGE = 'docker.storm7e.de/wireguard-go:latest';
+const DEFAULT_IMAGE = 'masipcat/wireguard-go:latest';
 
 function base64(content: string): string {
     return Buffer.from(content, 'utf8').toString('base64');

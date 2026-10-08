@@ -52,8 +52,8 @@ describe('buildInstanceManifest', () => {
     });
 
     it('pins a reserved IP via the MetalLB annotation when set', () => {
-        const yaml = buildInstanceManifest({ ...instance, load_balancer_ip: '192.168.249.201' }, clients);
-        expect(yaml).toContain('metallb.io/loadBalancerIPs: 192.168.249.201');
+        const yaml = buildInstanceManifest({ ...instance, load_balancer_ip: '192.168.1.201' }, clients);
+        expect(yaml).toContain('metallb.io/loadBalancerIPs: 192.168.1.201');
         expect(yaml).not.toContain('allow-shared-ip');
     });
 

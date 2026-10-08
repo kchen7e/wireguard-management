@@ -1,6 +1,6 @@
 services:
     wireguard-management:
-        image: docker.storm7e.de/wireguard-management:latest
+        image: wireguard-management:latest
         platform: linux/amd64
         container_name: wireguard-management
         restart: unless-stopped

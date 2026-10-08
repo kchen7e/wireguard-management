@@ -118,10 +118,10 @@ export default function CreateInstance({ intl }: { intl: Messages }) {
                     <Form.Item
                         label={intl['server_endpoint']}
                         name="serverEndpoint"
-                        initialValue="wg.storm7e.de"
+                        initialValue="vpn.example.com"
                         rules={[{ required: true, message: 'Please input the server endpoint!' }]}
                     >
-                        <Input placeholder="wg.storm7e.de" />
+                        <Input placeholder="vpn.example.com" />
                     </Form.Item>
                     <Form.Item label={intl['dns']} name="dns">
                         <Input placeholder="1.1.1.1" />

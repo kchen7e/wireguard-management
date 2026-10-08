@@ -28,7 +28,7 @@ const instance = {
     server_private_key: 'server-priv',
     server_public_key: 'server-pub',
     server_vpn_ip: '172.28.15.0/24',
-    server_endpoint: 'wg.storm7e.de',
+    server_endpoint: 'vpn.example.com',
     server_listen_port: 51820,
     dns: null,
     load_balancer_ip: null,

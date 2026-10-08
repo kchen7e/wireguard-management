@@ -20,9 +20,9 @@ describe('load balancer pool', () => {
     it('expands an address range from metallb.yaml', async () => {
         await writeFile(
             path.join(dir, 'metallb.yaml'),
-            'spec:\n    addresses:\n        - 192.168.249.200-192.168.249.202\n'
+            'spec:\n    addresses:\n        - 192.168.1.200-192.168.1.202\n'
         );
-        expect(readLoadBalancerPool()).toEqual(['192.168.249.200', '192.168.249.201', '192.168.249.202']);
+        expect(readLoadBalancerPool()).toEqual(['192.168.1.200', '192.168.1.201', '192.168.1.202']);
     });
 
     it('returns the first IP not already in use', async () => {
